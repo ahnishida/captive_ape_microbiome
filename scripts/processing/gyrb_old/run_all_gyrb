@@ -1,0 +1,4 @@
+#!bin/bash
+./amplicon_datasets/gyrb_cutadapt.sh
+Rscript amplicon_datasets/DADA2_gyrb_Bt.R
+#calls amplicon_datasets/DADA2_single.R
