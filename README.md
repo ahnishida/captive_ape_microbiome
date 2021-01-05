@@ -11,7 +11,7 @@ This repository contains scripts for processing raw fastq data as well as script
 The original Fastq files were submitted to the NCBI sequence read archive under BioProject accession number [Insert accession number here].
 
 #### Published fastq data: 
-Published fastq metadata are listed in Table 1
+Published fastq metadata are listed in Table S1
 
 #### File structure
 This study analyzes two seperate datasets - 16S and gyrb amplicon datasets. 
