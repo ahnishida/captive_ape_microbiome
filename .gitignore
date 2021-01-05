@@ -9,3 +9,5 @@ results/gyrb/inputs/physeq_Bacteroidales_asv_tab.txt
 .DS_Store
 .Rhistory
 .ipynb_checkpoints
+.Rdata
+
