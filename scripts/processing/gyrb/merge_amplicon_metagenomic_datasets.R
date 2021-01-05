@@ -16,8 +16,8 @@ source('scripts/processing/gyrb/idTaxa.R')
 
 #define inputs/outputs
 gyrb_ref_faa = 'ref_seqs/gtdbtk_gyrb.faa'
-outpath='results/gyrb/processing/gyrb_amp_meta_datasets'
-dir.create(outpath, recursive=TRUE)
+processing_folder='results/gyrb/processing/gyrb_amp_meta_datasets'
+dir.create(processing_folder, recursive=TRUE)
 
 #import data from separate gyrb amplicon runs and human metagenomic data
 print('import gyrb_moeller_wild dataset')
@@ -37,15 +37,13 @@ metagenomic_path <- "results/gyrb/processing/metagenomic_samples/final_outputs/g
 metagenomic_human_reads <- as.matrix(read.table(metagenomic_path,header=T,
                                                 row.names=1, check.names=F, sep="\t")) #Opens ASV table
 dim(metagenomic_human_reads)
-saveRDS(seqtab,file.path(outpath,'seqtab.rds'))
-seqtab = readRDS(file.path(outpath,'seqtab.rds'))
 #merge ASV tables
 seqtab <- mergeSequenceTables(gyrb_moeller_wild.seqtab.nochim,
                                 gyrb_nishida_captive_wild.seqtab.nochim,
                                 gyrb_nishida_projectchimps.seqtab.nochim,
                                 metagenomic_human_reads)
-saveRDS(seqtab,file.path(outpath,'seqtab.rds'))
-seqtab = readRDS(file.path(outpath,'seqtab.rds'))
+saveRDS(seqtab,file.path(processing_folder,'seqtab.rds'))
+seqtab = readRDS(file.path(processing_folder,'seqtab.rds'))
 
 # giving our seq headers more manageable names (ASV_1, ASV_2...)
 asv_seqs <- colnames(seqtab)
@@ -56,7 +54,7 @@ for (i in 1:dim(seqtab)[2]) {
 
 # making and writing out a fasta of ASV seqs:
 asv_fasta <- c(rbind(asv_headers, asv_seqs))
-write(asv_fasta, file.path(outpath,"ASVs_all.fasta"))
+write(asv_fasta, file.path(processing_folder,"ASVs_all.fasta"))
 rownames(seqtab)
 
 # count table:
@@ -71,15 +69,15 @@ metadata = metadata %>%  #filter metadata based on whether samples are in OTU ta
   column_to_rownames('X.SampleID')
 setdiff(colnames(asv_tab),row.names(metadata)) #samples in otu table that aren't in metadata
 
-#filter ASVs
-asv_fasta <- readDNAStringSet(file.path(outpath,"ASVs_all.fasta"),format = 'fasta')
-asv_faa <- Biostrings::translate(DNAStringSet(asv_fasta,start =2))
-Biostrings::writeXStringSet(asv_faa,file=file.path(outpath,"ASVs_all.faa")) 
-system(paste('./scripts/processing/gyrb/blastp_filter_ASVs.sh',
-      file.path(outpath,"ASVs_all.faa"),
+#translate ASVs to prot seq and blast 
+asv_fasta <- readDNAStringSet(file.path(processing_folder,"ASVs_all.fasta"),format = 'fasta')
+asv_faa <- Biostrings::translate(DNAStringSet(asv_fasta,start =2)) #translate ASVs
+Biostrings::writeXStringSet(asv_faa,file=file.path(processing_folder,"ASVs_all.faa")) 
+system(paste('./scripts/processing/gyrb/blastp_filter_ASVs.sh', #run blastp of ASVs
+      file.path(processing_folder,"ASVs_all.faa"),
       gyrb_ref_faa, 
-      file.path(outpath,"ASVs_all_blastp.txt"),sep=' '))
-ASV_blastp_res <- read.table(file.path(outpath,"ASVs_all_blastp.txt"))
+      file.path(processing_folder,"ASVs_all_blastp.txt"),sep=' '))
+ASV_blastp_res <- read.table(file.path(processing_folder,"ASVs_all_blastp.txt"))
 colnames(ASV_blastp_res) <- c('ASV','sacc','pident','qlen','length','evalue','bitscore','genome',
                               'salltitles','species','sseq','qseq','sstart','send')
 
@@ -99,13 +97,8 @@ ASVs_filtered_blast <-ASVs_filtered_blast %>%
 hist(ASVs_filtered_blast$sstart)
 hist(ASVs_filtered_blast$send)
 
-#output ASVs filtered based on blastp results 
-ASVs_filtered_blast_fasta <- asv_fasta[names(asv_fasta) %in% ASVs_filtered_blast$ASV]
-names(ASVs_filtered_blast_fasta)
-Biostrings::writeXStringSet(ASVs_filtered_blast_fasta ,file=file.path(outpath,"ASVs_filtered_blast.fasta")) 
-
 #assign taxonomy
-TAX_table <- assign_taxonomy_w_idTAXA(file.path(outpath,"ASVs_all.faa"),gyrb_ref_faa)
+TAX_table <- assign_taxonomy_w_idTAXA(file.path(processing_folder,"ASVs_all.faa"),gyrb_ref_faa)
 data.frame(TAX_table) %>% group_by(Family) %>% tally()
 outgroup <- data.frame(TAX_table) %>% filter(Family == 'f__F082') 
 F082_ASVs <- rownames(outgroup) 
@@ -114,41 +107,37 @@ F082_ASVs <- rownames(outgroup)
 (ps <- phyloseq(otu_table(asv_tab, taxa_are_rows=TRUE), 
                 sample_data(metadata), 
                 tax_table(as.matrix(TAX_table))))
-saveRDS(ps,file.path(outpath,'ps.rds'))
-ps = readRDS(file.path(outpath,'ps.rds'))
-
-#write physeq
-ps <- prune_taxa(ASVs_filtered_blast$ASV,ps)
-ps_Bacteroidales <- subset_taxa(ps, Order == 'o__Bacteroidales')
-ps_Bacteroidales <- prune_samples(sample_sums(ps_Bacteroidales)>0, ps_Bacteroidales)
-saveRDS(ps_Bacteroidales,file.path(outpath,"ps_Bacteroidales.rds"))
-ps_Bacteroidales <- readRDS(file.path(outpath,"ps_Bacteroidales.rds"))
+saveRDS(ps,file.path(processing_folder,'ps.rds'))
+ps = readRDS(file.path(processing_folder,'ps.rds'))
+ps_filtered <- prune_taxa(ASVs_filtered_blast$ASV,ps) #filter ASVs based on blastp results
+ps_Bacteroidales <- subset_taxa(ps_filtered, Order == 'o__Bacteroidales') #filter ASVs based on taxonomy
+samples_with_Bacteroidales <- sample_names(ps_Bacteroidales)[sample_sums(ps_Bacteroidales)>0]
+ps_Bacteroidales <- prune_samples(samples_with_Bacteroidales, ps_Bacteroidales)
 
 #write fasta
 asv_fasta_filt <- asv_fasta[names(asv_fasta) %in% taxa_names(ps_Bacteroidales)]
-Biostrings::writeXStringSet(asv_fasta_filt,file=file.path(outpath,"ASVs_filtered.fasta")) 
+Biostrings::writeXStringSet(asv_fasta_filt,file=file.path(processing_folder,"ASVs_filtered.fasta")) 
 asv_faa_filt <- asv_faa[names(asv_faa) %in% taxa_names(ps_Bacteroidales)]
-Biostrings::writeXStringSet(asv_faa_filt,file=file.path(outpath,"ASVs_filtered.faa")) 
+Biostrings::writeXStringSet(asv_faa_filt,file=file.path(processing_folder,"ASVs_filtered.faa")) 
 
 #select ref seqs to include with ASVs
 gyrb_ref_fasta = 'ref_seqs/gtdbtk_gyrb.fasta'
 gyrb_ref <- readDNAStringSet(gyrb_ref_fasta,format = 'fasta')
 bacteroidales_ref <- gyrb_ref[str_detect(names(gyrb_ref),'o__Bacteroidales')]
-Biostrings::writeXStringSet(bacteroidales_ref ,file=file.path(outpath,"bacteroidales_ref.fasta")) 
+Biostrings::writeXStringSet(bacteroidales_ref ,file=file.path(processing_folder,"bacteroidales_ref.fasta")) 
 
 #phylogeny 
-folder <- 'phylogeny'
-dir.create(file.path(outpath,folder), recursive=TRUE)
+dir.create(file.path(processing_folder,'phylogeny'), recursive=TRUE)
 
 trimAlign <- function(aln_in,aln_out){
   #trim alignment to start and end of ASVs
-  aln <- Biostrings::readDNAStringSet(aln_in)
-  ASV_1 <- DNAString(as.character(aln['ASV_1']))
-  ASV_seq_no_gaps <- as.character(RemoveGaps(aln['ASV_1'],removeGaps = "all"))
-  first10nt <- stringr::str_sub(ASV_seq_no_gaps,1,10)
-  last10nt <- stringr::str_sub(ASV_seq_no_gaps,-10,-1)
-  s <- start(matchPattern(first10nt, ASV_1))
-  e <-end(matchPattern(last10nt, ASV_1))
+  aln <- Biostrings::readDNAStringSet(aln_in) 
+  ASV1 <- DNAString(as.character(aln['ASV_1']))
+  ASV1_seq_no_gaps <- as.character(RemoveGaps(aln['ASV_1'],removeGaps = "all"))
+  first10nt <- stringr::str_sub(ASV1_seq_no_gaps,1,10)
+  last10nt <- stringr::str_sub(ASV1_seq_no_gaps,-10,-1)
+  s <- start(matchPattern(first10nt, ASV1))
+  e <-end(matchPattern(last10nt, ASV1))
   alnTrim <- DNAStringSet(aln,start=s,end=e)
   seqlengths = width(RemoveGaps(alnTrim,
                                 removeGaps = "all",
@@ -156,83 +145,83 @@ trimAlign <- function(aln_in,aln_out){
   alnTrimFilt <- alnTrim[seqlengths > 250*.95]
   alnTrimFilt <- RemoveGaps(alnTrimFilt,
                             removeGaps = "common")
+  print(c(length(aln),'seqs in alignment',length(alnTrimFilt),'seqs in trimmed alignment'))
   Biostrings::writeXStringSet(alnTrimFilt,file=aln_out)
 }
 
-#no ref taxa
-asv_fasta_filt <- Biostrings::readDNAStringSet(file.path(outpath,"ASVs_filtered.fasta"))
-asv_aln <- AlignTranslation(DNAStringSet(asv_fasta_filt,start=2))
-Biostrings::writeXStringSet(asv_aln,file.path(outpath,folder,'ASVs_filtered_aln.fasta'))
-trimAlign(file.path(outpath,folder,'ASVs_filtered_aln.fasta'),
-          file.path(outpath,folder,"ASVs_filtered_aln_trim.fasta"))
-system(paste0('./FastTree-2.1.9 -nt -gtr <  ',
-              file.path(outpath,folder,"ASVs_filtered_aln_trim.fasta"),
+#no ref taxa phylogeny
+asv_fasta_filt <- Biostrings::readDNAStringSet(file.path(processing_folder,"ASVs_filtered.fasta")) #read in nuc fasta
+asv_aln <- AlignTranslation(DNAStringSet(asv_fasta_filt,start=2)) #align based on AA sequences
+Biostrings::writeXStringSet(asv_aln,file.path(processing_folder,'phylogeny','ASVs_filtered_aln.fasta')) #write alignment
+trimAlign(file.path(processing_folder,'phylogeny','ASVs_filtered_aln.fasta'), #trim alignment to where ASV1 starts and ends
+          file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim.fasta"))
+system(paste0('./FastTree-2.1.9 -nt -gtr <  ', 
+              file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim.fasta"), #generate phylogeny using fasttree
               ' > ',
-              file.path(outpath,folder,"ASVs_filtered_aln_trim.tre")))
-asv_tree <- ape::read.tree(file.path(outpath,folder,"ASVs_filtered_aln_trim.tre"))
-mrca <- findMRCA(asv_tree,F082_ASVs)
-asv_tree_rooted <- reroot(asv_tree,mrca)
+              file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim.tre")))
+asv_tree <- ape::read.tree(file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim.tre")) #read in phylogeny
+mrca <- findMRCA(asv_tree,F082_ASVs) #find outgroup
+asv_tree_rooted <- reroot(asv_tree,mrca) #reroot phylogeny based on outgroup
 ape::write.tree(asv_tree_rooted,"tmp.tre")
-system(paste0("sed 's/Root;/;/g'  tmp.tre > ",
-              file.path(outpath,folder,"ASVs_filtered_aln_trim_rooted.tre")))
-ps_Bacteroidales_asvTree <- merge_phyloseq(ps_Bacteroidales,asv_tree_rooted)
-saveRDS(ps_Bacteroidales_asvTree,file.path(outpath,"ps_Bacteroidales_asvTree.rds"))
+system(paste0("sed 's/Root;/;/g'  tmp.tre > ", #remove Root; from end of file so that phyloseq likes it
+              file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim_rooted.tre")))
 
-#ref taxa
-asv_ref <- c(bacteroidales_ref,DNAStringSet(asv_fasta_filt,start=2))
-Biostrings::writeXStringSet(asv_ref,file=file.path(outpath,folder,"ASVs_filtered_ref.fasta")) 
-asv_ref_aln <- AlignTranslation(asv_ref)  
-Biostrings::writeXStringSet(asv_ref_aln,file=file.path(outpath,folder,"ASVs_filtered_ref_aln.fasta")) 
-trimAlign(file.path(outpath,folder,'ASVs_filtered_ref_aln.fasta'),
-          file.path(outpath,folder,"ASVs_filtered_ref_aln_trim.fasta"))
+ps_Bacteroidales_asvTree <- merge_phyloseq(ps_Bacteroidales,asv_tree_rooted)
+saveRDS(ps_Bacteroidales_asvTree,file.path(processing_folder,"ps_Bacteroidales_asvTree.rds"))
+
+#ref taxa phylogeny
+asv_ref <- c(bacteroidales_ref,DNAStringSet(asv_fasta_filt,start=2)) #read in nuc fasta with ref gyrb seqs from gtdbtk
+Biostrings::writeXStringSet(asv_ref,file=file.path(processing_folder,'phylogeny',"ASVs_filtered_ref.fasta")) #write ASVs with ref fasta
+asv_ref_aln <- AlignTranslation(asv_ref)   #align based on AA sequences
+Biostrings::writeXStringSet(asv_ref_aln,file=file.path(processing_folder,'phylogeny',"ASVs_filtered_ref_aln.fasta"))  #write alignment
+trimAlign(file.path(processing_folder,'phylogeny','ASVs_filtered_ref_aln.fasta'), #trim alignment to where ASV1 starts and ends
+          file.path(processing_folder,'phylogeny',"ASVs_filtered_ref_aln_trim.fasta"))
 system(paste0('./FastTree-2.1.9 -nt -gtr <  ',
-              file.path(outpath,folder,"ASVs_filtered_ref_aln_trim.fasta"),
+              file.path(processing_folder,'phylogeny',"ASVs_filtered_ref_aln_trim.fasta"), #generate phylogeny using fasttree
               ' > ',
-              file.path(outpath,folder,"ASVs_filtered_ref_aln_trim.tre")))
-asv_ref_tree <- ape::read.tree(file.path(outpath,folder,"ASVs_filtered_ref_aln_trim.tre"))
-asv_tips <- asv_ref_tree$tip.label[str_detect(asv_ref_tree$tip.label,'ASV')]
-asv_ref_tree <- keep.tip(asv_ref_tree,asv_tips)
-mrca <- findMRCA(asv_ref_tree,F082_ASVs)
-asv_ref_tree_rooted <- reroot(asv_ref_tree,mrca)
+              file.path(processing_folder,'phylogeny',"ASVs_filtered_ref_aln_trim.tre")))
+asv_ref_tree <- ape::read.tree(file.path(processing_folder,'phylogeny',"ASVs_filtered_ref_aln_trim.tre")) #read in phylogeny
+asv_tips <- asv_ref_tree$tip.label[str_detect(asv_ref_tree$tip.label,'ASV')] #find ASVs seqs
+asv_ref_tree <- keep.tip(asv_ref_tree,asv_tips) #remove ref seqs
+outgroup_mrca <- findMRCA(asv_ref_tree,F082_ASVs) #find outgroup
+asv_ref_tree_rooted <- reroot(asv_ref_tree,outgroup_mrca) #reroot tree based on outgroup
 ape::write.tree(asv_ref_tree_rooted,"tmp.tre")
 system(paste0("sed 's/Root;/;/g'  tmp.tre > ",
-              file.path(outpath,folder,"ASVs_filtered_ref_aln_trim_rooted.tre")))
-ps_Bacteroidales_asvRefTree <- merge_phyloseq(ps_Bacteroidales,asv_ref_tree_rooted)
-saveRDS(ps_Bacteroidales_asvRefTree,file.path(outpath,"ps_Bacteroidales_asvRefTree.rds"))
+              file.path(processing_folder,'phylogeny',"ASVs_filtered_ref_aln_trim_rooted.tre")))
+system("rm tmp.tre")
 
-#any diff b/n physeqs 
-setdiff(taxa_names(ps_Bacteroidales_asvTree),taxa_names(ps_Bacteroidales_asvRefTree))
-setdiff(taxa_names(ps_Bacteroidales_asvRefTree),taxa_names(ps_Bacteroidales_asvTree))
+#any differences in tree tips?
+setdiff(asv_ref_tree$tip.label,asv_tree$tip.label)
+setdiff(asv_tree$tip.label,asv_ref_tree$tip.label)
+setdiff(taxa_names(ps_Bacteroidales),asv_ref_tree$tip.label) #ASV removed by generating phylogeny
+setdiff(taxa_names(ps_Bacteroidales),asv_tree$tip.label)
 
-#write to inputs folder
-write_to_output_folder <- function(physeq,outdir,all_ASVs_fasta){
-  dir.create(outdir, recursive=TRUE)
-  #write tax table
-  tax_table_tab <- as.data.frame(tax_table(physeq)) %>% 
-    rownames_to_column(var='ASV')
-    write.table(tax_table_tab,file.path(outdir,'physeq_Bacteroidales_taxonomy.txt'),quote=F,row.names=F,sep='\t')
-  metadata_tab <- as.data.frame(sample_data(physeq)) 
-    metadata_tab$X.SampleID <- rownames(metadata_tab)
-    write.table(metadata_tab,file.path(outdir,'physeq_metadata_passing_samples.txt'),quote=F,row.names=F,sep='\t')
-  otu_table <- as.data.frame(otu_table(physeq)) 
-    write.table(otu_table,file.path(outdir,'physeq_Bacteroidales_asv_tab.txt'),quote=F,row.names=T,col.names=NA,sep='\t')
-  fasta <- Biostrings::readDNAStringSet(all_ASVs_fasta)
-    fasta_physeq <- fasta[names(fasta) %in% taxa_names(physeq)]
-    Biostrings::writeXStringSet(fasta_physeq,file=file.path(outdir,"physeq_Bacteroidales_asv.fasta")) 
-}
+#prune physeq to taxa in phylogeny
+ps_Bacteroidales_final <- prune_taxa(asv_tree$tip.label,ps_Bacteroidales)
 
-write_to_output_folder(ps_Bacteroidales_asvTree,
-                       'results/gyrb/inputs/ps_Bacteroidales_asvTree',
-                       file.path(outpath,"ASVs_all.fasta"))
-write_to_output_folder(ps_Bacteroidales_asvRefTree,
-                       'results/gyrb/inputs/ps_Bacteroidales_asvRefTree',
-                       file.path(outpath,"ASVs_all.fasta"))
+#output physeq to inputs_folder
+inputs_folder <- 'results/gyrb/inputs'
+dir.create(inputs_folder, recursive=TRUE)
+#write taxonomy table
+tax_table_tab <- as.data.frame(tax_table(ps_Bacteroidales_final)) %>% 
+  rownames_to_column(var='ASV')
+write.table(tax_table_tab,file.path(inputs_folder,'physeq_Bacteroidales_taxonomy.txt'),quote=F,row.names=F,sep='\t')
+#write metadata
+metadata_tab <- as.data.frame(sample_data(ps_Bacteroidales_final)) 
+metadata_tab$X.SampleID <- rownames(metadata_tab)
+write.table(metadata_tab,file.path(inputs_folder,'physeq_metadata_passing_samples.txt'),quote=F,row.names=F,sep='\t')
+#write otu/asv table
+otu_table <- as.data.frame(otu_table(ps_Bacteroidales_final)) 
+write.table(otu_table,file.path(inputs_folder,'physeq_Bacteroidales_asv_tab.txt'),quote=F,row.names=T,col.names=NA,sep='\t')
+#write fasta
+asv_fasta_final <- asv_fasta[names(asv_fasta) %in% taxa_names(ps_Bacteroidales_final)]
+Biostrings::writeXStringSet(asv_fasta_final,file=file.path(inputs_folder,"physeq_Bacteroidales_asv.fasta")) 
+
 #copy over phylogenies
-system(paste0('cp ',file.path(outpath,folder,"ASVs_filtered_ref_aln_trim_rooted.tre"),
-' results/gyrb/inputs/ps_Bacteroidales_asvRefTree/physeq_Bacteroidales.tree'))
-system(paste0('cp ',file.path(outpath,folder,"ASVs_filtered_aln_trim_rooted.tre"),
-              ' results/gyrb/inputs/ps_Bacteroidales_asvTree/physeq_Bacteroidales.tree'))
+system(paste('cp',file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim_rooted.tre"),
+              file.path(inputs_folder,'physeq_Bacteroidales_ASVs.tree'),sep=' '))
+system(paste('cp',file.path(processing_folder,'phylogeny',"ASVs_filtered_ref_aln_trim_rooted.tre"),
+             file.path(inputs_folder,'physeq_Bacteroidales_ASVs_ref.tree'),sep=' '))
 
 #write moeller codiv seq files
-system('cp results/gyrb/processing/moeller_sup/moeller_codiv* results/gyrb/inputs/ps_Bacteroidales_asvTree/')
-system('cp results/gyrb/processing/moeller_sup/moeller_codiv* results/gyrb/inputs/ps_Bacteroidales_asvRefTree/')
+system(paste0('cp results/gyrb/processing/moeller_sup/moeller_codiv* ',inputs_folder))

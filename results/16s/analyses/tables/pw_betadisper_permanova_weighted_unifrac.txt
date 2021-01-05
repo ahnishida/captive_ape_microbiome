@@ -1,0 +1,42 @@
+"cp_nih.1"	"betadisper_stat"	"betadisper_Df"	"betadisper_Sum Sq"	"betadisper_Mean Sq"	"betadisper_F"	"betadisper_N.Perm"	"betadisper_Pr(>F)"
+"cp_nih.2"	"wunifrac.Groups"	"1"	"0.0686625872897932"	"0.0686625872897932"	"12.2452665136555"	"999"	"0.002"
+"cp_nih.3"	"wunifrac.Residuals"	"209"	"1.17192065420247"	"0.00560727585742808"	NA	NA	NA
+"cp_nih.4"	"permanova_stat"	"permanova_Df"	"permanova_SumsOfSqs"	"permanova_MeanSqs"	"permanova_F.Model"	"permanova_R2"	"permanova_Pr(>F)"
+"cp_nih.5"	"wunifrac.captivity_status"	"1"	"1.15975771978663"	"1.15975771978663"	"22.5220824625332"	"0.0972783339843096"	"0.001"
+"cp_nih.6"	"wunifrac.Residuals"	"209"	"10.7622980174518"	"0.0514942488873292"	NA	"0.90272166601569"	NA
+"cp_nih.7"	"wunifrac.Total"	"210"	"11.9220557372384"	NA	NA	"1"	NA
+"cp_ih.1"	"betadisper_stat"	"betadisper_Df"	"betadisper_Sum Sq"	"betadisper_Mean Sq"	"betadisper_F"	"betadisper_N.Perm"	"betadisper_Pr(>F)"
+"cp_ih.2"	"wunifrac.Groups"	"1"	"0.000198514140483251"	"0.000198514140483251"	"0.0386124908988421"	"999"	"0.851"
+"cp_ih.3"	"wunifrac.Residuals"	"215"	"1.10535578540412"	"0.00514118969955405"	NA	NA	NA
+"cp_ih.4"	"permanova_stat"	"permanova_Df"	"permanova_SumsOfSqs"	"permanova_MeanSqs"	"permanova_F.Model"	"permanova_R2"	"permanova_Pr(>F)"
+"cp_ih.5"	"wunifrac.captivity_status"	"1"	"2.49620930523723"	"2.49620930523723"	"61.4865960333182"	"0.222385449838981"	"0.001"
+"cp_ih.6"	"wunifrac.Residuals"	"215"	"8.72848775585475"	"0.0405976174690918"	NA	"0.777614550161019"	NA
+"cp_ih.7"	"wunifrac.Total"	"216"	"11.224697061092"	NA	NA	"1"	NA
+"cp_wd.1"	"betadisper_stat"	"betadisper_Df"	"betadisper_Sum Sq"	"betadisper_Mean Sq"	"betadisper_F"	"betadisper_N.Perm"	"betadisper_Pr(>F)"
+"cp_wd.2"	"wunifrac.Groups"	"1"	"0.575482930888902"	"0.575482930888902"	"99.9337376433296"	"999"	"0.001"
+"cp_wd.3"	"wunifrac.Residuals"	"452"	"2.60290759553259"	"0.00575864512285971"	NA	NA	NA
+"cp_wd.4"	"permanova_stat"	"permanova_Df"	"permanova_SumsOfSqs"	"permanova_MeanSqs"	"permanova_F.Model"	"permanova_R2"	"permanova_Pr(>F)"
+"cp_wd.5"	"wunifrac.captivity_status"	"1"	"5.3945770272438"	"5.3945770272438"	"68.6701434635946"	"0.131887999198087"	"0.001"
+"cp_wd.6"	"wunifrac.Residuals"	"452"	"35.5081363359447"	"0.0785578237520901"	NA	"0.868112000801913"	NA
+"cp_wd.7"	"wunifrac.Total"	"453"	"40.9027133631885"	NA	NA	"1"	NA
+"nih_ih.1"	"betadisper_stat"	"betadisper_Df"	"betadisper_Sum Sq"	"betadisper_Mean Sq"	"betadisper_F"	"betadisper_N.Perm"	"betadisper_Pr(>F)"
+"nih_ih.2"	"wunifrac.Groups"	"1"	"0.106577216467081"	"0.106577216467081"	"16.7311139637847"	"999"	"0.001"
+"nih_ih.3"	"wunifrac.Residuals"	"272"	"1.73264033356022"	"0.00637000122632435"	NA	NA	NA
+"nih_ih.4"	"permanova_stat"	"permanova_Df"	"permanova_SumsOfSqs"	"permanova_MeanSqs"	"permanova_F.Model"	"permanova_R2"	"permanova_Pr(>F)"
+"nih_ih.5"	"wunifrac.captivity_status"	"1"	"2.20776146365458"	"2.20776146365458"	"44.6518545170311"	"0.141012452256551"	"0.001"
+"nih_ih.6"	"wunifrac.Residuals"	"272"	"13.4487385710933"	"0.0494438918054902"	NA	"0.858987547743449"	NA
+"nih_ih.7"	"wunifrac.Total"	"273"	"15.6565000347479"	NA	NA	"1"	NA
+"nih_wd.1"	"betadisper_stat"	"betadisper_Df"	"betadisper_Sum Sq"	"betadisper_Mean Sq"	"betadisper_F"	"betadisper_N.Perm"	"betadisper_Pr(>F)"
+"nih_wd.2"	"wunifrac.Groups"	"1"	"0.325921070062633"	"0.325921070062633"	"51.4162353230565"	"999"	"0.001"
+"nih_wd.3"	"wunifrac.Residuals"	"509"	"3.22648719066152"	"0.00633887463784189"	NA	NA	NA
+"nih_wd.4"	"permanova_stat"	"permanova_Df"	"permanova_SumsOfSqs"	"permanova_MeanSqs"	"permanova_F.Model"	"permanova_R2"	"permanova_Pr(>F)"
+"nih_wd.5"	"wunifrac.captivity_status"	"1"	"10.5386382911238"	"10.5386382911238"	"133.342827541726"	"0.207588256339742"	"0.001"
+"nih_wd.6"	"wunifrac.Residuals"	"509"	"40.2283871511833"	"0.0790341594325802"	NA	"0.792411743660258"	NA
+"nih_wd.7"	"wunifrac.Total"	"510"	"50.7670254423072"	NA	NA	"1"	NA
+"ih_wd.1"	"betadisper_stat"	"betadisper_Df"	"betadisper_Sum Sq"	"betadisper_Mean Sq"	"betadisper_F"	"betadisper_N.Perm"	"betadisper_Pr(>F)"
+"ih_wd.2"	"wunifrac.Groups"	"1"	"0.958093405063007"	"0.958093405063007"	"156.166648514673"	"999"	"0.001"
+"ih_wd.3"	"wunifrac.Residuals"	"515"	"3.15956132951838"	"0.00613507054275413"	NA	NA	NA
+"ih_wd.4"	"permanova_stat"	"permanova_Df"	"permanova_SumsOfSqs"	"permanova_MeanSqs"	"permanova_F.Model"	"permanova_R2"	"permanova_Pr(>F)"
+"ih_wd.5"	"wunifrac.captivity_status"	"1"	"10.2819322200996"	"10.2819322200996"	"138.637354424916"	"0.212101333386756"	"0.001"
+"ih_wd.6"	"wunifrac.Residuals"	"515"	"38.1945768895863"	"0.0741642269700704"	NA	"0.787898666613244"	NA
+"ih_wd.7"	"wunifrac.Total"	"516"	"48.4765091096858"	NA	NA	"1"	NA

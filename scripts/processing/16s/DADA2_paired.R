@@ -1,3 +1,5 @@
+#
+
 DADA2_paired <- function(forward_reads, reverse_reads, sample.names, outdir, trunc_parameters) {
 
 #Defining output directory/fastqs

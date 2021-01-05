@@ -64,9 +64,9 @@ seqtab <- mergeSequenceTables(raymann_ASV,
 dim(seqtab) #
 
 # assign taxonomy
-TAX <- assignTaxonomy(seqtab, "../../ref_seqs/silva_nr_v132_train_set.fa", multithread=TRUE)
+#TAX <- assignTaxonomy(seqtab, "../../ref_seqs/silva_nr_v132_train_set.fa", multithread=TRUE)
 #TAX <- addSpecies(TAX, "../../ref_seqs/DADA2/silva_species_assignment_v132.fa")
-saveRDS(TAX,"processing/16s__merged/tax_table.rds")
+#saveRDS(TAX,"processing/16s__merged/tax_table.rds")
 TAX = readRDS("processing/16s__merged/tax_table.rds")
 dim(TAX)
 TAX.print <- TAX # Removing sequence rownames for display only
@@ -126,7 +126,7 @@ flist<-filterfun(kOverA(2,.005))
 (ps_filtered_relabund <- prune_taxa(taxa_names(k2overa.005),ps_filtered))
 
 # rarefaction 10000 
-set.seed(1324)
+set.seed(1389)
 physeq_rare10000 = prune_samples(sample_sums(ps_filtered_relabund)>=10000, ps_filtered_relabund)
 (physeq_rare10000 = rarefy_even_depth(physeq_rare10000,trimOTUs = FALSE))
 
@@ -154,21 +154,23 @@ write.table(metadata_subset,sep='\t',quote=F,row.names=F,
             file=file.path('processing/16s__merged/metadata_surviving_samples.txt'))
 
 physeq_rare10000 <- prune_samples(as.vector(metadata_subset$X.SampleID), physeq_rare10000)
-physeq_rare10000 <- filter_taxa(physeq_rare10000, taxa_sums(physeq_rare10000)>0, TRUE)
+taxa_over_zero <- taxa_names(physeq_rare10000)[taxa_sums(physeq_rare10000)>0]
+physeq_rare10000 <- prune_taxa(taxa_over_zero,physeq_rare10000)
+
 asv_fasta <- read.fasta(file.path("processing/16s__merged/ASVs_prefilter.fasta"))
 asv_filtered_fasta <- asv_fasta[c(which(names(asv_fasta) %in% rownames(otu_table(physeq_rare10000))))]
 write.fasta(sequences = asv_filtered_fasta, names = names(asv_filtered_fasta), 
             file.out = "processing/16s__merged/ASVs.fasta")
-  
+length(asv_filtered_fasta)
 # align seqs and generate phylogeny
 system("mafft --auto processing/16s__merged/ASVs.fasta > processing/16s__merged/ASVs_aligned.fasta")
 #have to have an executable fasttree to run in Rstudio
 system("./../../FastTree-2.1.9 -nt -gtr < processing/16s__merged/ASVs_aligned.fasta > processing/16s__merged/ASVs_aligned.tre")
 TREE <- read.tree("processing/16s__merged/ASVs_aligned.tre")
 TREE <- midpoint.root(TREE)
-  
+TREE$tip.label
 #add tree to phyloseq
-physeq_rare10000  <- merge_phyloseq(physeq_rare10000,phy_tree(TREE))
+physeq_rare10000 <- merge_phyloseq(physeq_rare10000,phy_tree(TREE))
 saveRDS(physeq_rare10000,"processing/16s__merged/phyloseq_rare10000.rds")
 
 #write to inputs folder
