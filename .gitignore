@@ -1,0 +1,11 @@
+data/
+drafts/
+old/
+ref_seqs
+results/16s/processing/**
+results/gyrb/processing/**
+scripts_copy/
+results/gyrb/inputs/physeq_Bacteroidales_asv_tab.txt
+.DS_Store
+.Rhistory
+
