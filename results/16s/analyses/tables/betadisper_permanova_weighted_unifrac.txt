@@ -1,7 +1,0 @@
-betadisper_stat	betadisper_Df	betadisper_Sum Sq	betadisper_Mean Sq	betadisper_F	betadisper_N.Perm	betadisper_Pr(>F)
-weighted_unifrac.Groups	3	1.32809362681008	0.44269787560336	74.4620649719503	999	0.001
-weighted_unifrac.Residuals	724	4.30438320583198	0.00594528067103865	NA	NA	NA
-permanova_stat	permanova_Df	permanova_SumsOfSqs	permanova_MeanSqs	permanova_F.Model	permanova_R2	permanova_Pr(>F)
-weighted_unifrac.captivity_status	3	19.9745247720841	6.65817492402802	98.4645906044807	0.289773961722322	0.001
-weighted_unifrac.Residuals	724	48.9568749070381	0.0676199929655223	NA	0.710226038277677	NA
-weighted_unifrac.Total	727	68.9313996791222	NA	NA	1	NA
