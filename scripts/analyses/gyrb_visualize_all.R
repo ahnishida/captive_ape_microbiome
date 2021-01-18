@@ -21,17 +21,12 @@ All_gyrb$cat <- 'gyrb all samples'
 CP_gyrb <- HR_gyrb %>% filter(CP_pres=='True') %>% group_by(HR_type) %>% tally()
 CP_gyrb$cat <- 'gyrb captive apes'
 HR_16S_gyrb <- bind_rows(All_16S,CP_16S,All_gyrb,CP_gyrb)
-HR_16S_gyrb$HR_type <- recode(HR_16S_gyrb$HR_type,MX_2_wild_apes = "MX_wild_apes",
-                          MX_3_wild_apes = "MX_wild_apes",
-                          MX_human_2_wild_apes ="MX_human_wild_apes",
-                          MX_human_single_wild_ape ="MX_human_wild_apes",
-                          MX_4_hominids = "MX_human_wild_apes")
 (HRpalette <- as.vector(recode(unique(HR_16S_gyrb$HR_type), HR_wild_gorilla = "darkgreen", 
                                HR_wild_chimp = "darkorange2",
                                HR_wild_bonobo = "red2", 
                                HR_human = "dodgerblue",
-                               MX_human_wild_apes = "goldenrod",
-                               MX_wild_apes = "maroon", 
+                               MX_human_wild_apes = "maroon",
+                               MX_wild_apes = "goldenrod", 
                                Unique_CP='purple')))
 plot_HR_16S_gyrb <- ggplot(HR_16S_gyrb, aes(fill=HR_type, y=n, x=cat)) + 
   geom_bar(position="fill", stat="identity") +
@@ -55,6 +50,7 @@ print(c('column 1',table(clades$heatmap_col1)))
 print(c('column 2',table(clades$heatmap_col2)))
 
 #subset to clades that are observed in threshold cutoff of the individuals with one captive ape species
+threshold <- .25
 captive_clades <- clades %>%
     filter(captive_chimp>threshold|captive_gorilla>threshold|captive_orangutan>threshold|captive_bonobo>threshold)
 print(c(nrow(captive_clades),'clades'))
@@ -118,9 +114,8 @@ HRclade_color_scale <- levels(droplevels(factor(captive_clades$HR_type)))
                                          HR_wild_chimp = "darkorange2",
                                          HR_wild_bonobo = "red2", 
                                          HR_human = "dodgerblue3",
-                                         MX_2_wild_apes = "chocolate4",
-                                         MX_human_2_wild_apes = "chocolate4", 
-                                         MX_human_single_wild_ape = "chocolate4",
+                                         MX_human_wild_apes = "chocolate4",
+                                         MX_wild_apes = "chocolate4", 
                                          Unique_CP = "purple")))
 
 #change order of taxa in dotplot
@@ -209,9 +204,8 @@ run_subtree_visualize <- function(INDIR,OUTDIR) {
                                   HR_wild_chimp = "darkorange2",
                                   HR_wild_bonobo = "red2", 
                                   HR_human = "dodgerblue3",
-                                  MX_2_wild_apes='magenta',
-                                  MX_human_2_wild_apes ='magenta',
-                                  MX_human_single_wild_ape='magenta'))
+                                  MX_wild_apes='magenta',
+                                  MX_human_wild_apes ='magenta'))
     (color_vec <- c("black",color_vec))
     return(c(tree_cls,color_vec))
   }
@@ -392,5 +386,5 @@ run_subtree_visualize <- function(INDIR,OUTDIR) {
   ggsave(Bt3_tree_fig,filename = file.path(OUTDIR,'figures/FigureS10_Bt3_tree.pdf'),width=7)
   
 }
-run_subtree_visualize('results/gyrb/inputs','results/gyrb/analyses')
+run_subtree_visualize('results/gyrb/inputs_old','results/gyrb/analyses')
 

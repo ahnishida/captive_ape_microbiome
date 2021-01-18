@@ -97,9 +97,13 @@ run_betadisper_permanova_dist <- function(physeq,physeq_dist){
 }
 
 #BETADISPER and PERMANOVA
+print('bray-curtis')
 (beta_perm_bray <- run_betadisper_permanova_dist(physeq16s,physeq16s_bray)) 
+print('jaccard')
 (beta_perm_jaccard <- run_betadisper_permanova_dist(physeq16s,physeq16s_jaccard))
+print('weighted unifrac')
 (beta_perm_wunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_wunifrac))
+print('unweighted unifrac')
 (beta_perm_uunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_uunifrac))
 
 #PAIRWISE BETADISPER and PERMANOVA 
@@ -126,11 +130,6 @@ write.table(pw_df,file=file.path(table_outdir,'Table_pw_betadisper_permanova_bra
 new_tax_table <- data.frame(tax_table(physeq16s)) #add HRcat and type to taxonomy
 new_tax_table$HR_cat <- HR_table$HR_cat 
 new_tax_table$HR_type <- HR_table$HR_type
-new_tax_table$HR_type <- recode(HR_table$HR_type,MX_2_wild_apes = "MX_wild_apes",
-                                MX_3_wild_apes = "MX_wild_apes",
-                                MX_human_2_wild_apes ="MX_human_wild_apes",
-                                MX_human_single_wild_ape ="MX_human_wild_apes",
-                                MX_4_hominids = "MX_human_wild_apes")
 tax_table(physeq16s) <- as.matrix(new_tax_table)
 
 #Make new column in metadata that is a combo of description/zoo site
@@ -225,6 +224,7 @@ kw_abund_Taxa <- function(TaxLevel,TaxName,nComp){
   names(res) <- c(TaxLevel,paste0(colnames(cpwd_means),'_mean'),paste0(colnames(group_means),'_mean'),'captive_vs_wild_allspecies','captive_vs_wild_bonobo','captive_vs_wild_chimp','captive_vs_wild_gorilla')
   return(res)
 }
+
 kw_abund_Taxa('Phylum','Actinobacteria',4) #test on a single phylum
 kw_abund_Taxa('Genus','Bifidobacterium',4) #test on a single genus
 
@@ -702,7 +702,10 @@ p.adjust(test$p.value,method = "fdr",n = 6)
 p.adjust(test$p.value,method = "fdr",n = 6)
 
 df_same_site <- df %>% filter(species_site_comp=='diff_species_same_site') 
-df_same_site <- df_same_site %>% mutate(within_sites_comp=paste0(site.ind1,'_',Description.ind1,'_vs_',Description.ind2))
+df_same_site <- df_same_site %>% 
+  mutate(within_sites_comp=paste0(site.ind1,'_',Description.ind1,'_vs_',Description.ind2)) %>%
+  mutate(within_sites_comp = gsub("como_zoo_orangutan_vs_gorilla","como_zoo_gorilla_vs_orangutan", within_sites_comp))
+         
 plot_shared_ASVs_wn_site <- ggplot(df_same_site, aes(x=within_sites_comp, y=similarity,fill=within_sites_comp)) + 
   geom_violin()+
   scale_fill_manual(values=c('orange2','orange2','orange2','green3',
