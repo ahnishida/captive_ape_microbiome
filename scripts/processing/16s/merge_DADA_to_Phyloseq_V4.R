@@ -64,9 +64,8 @@ seqtab <- mergeSequenceTables(raymann_ASV,
 dim(seqtab) #
 
 # assign taxonomy
-#TAX <- assignTaxonomy(seqtab, "../../ref_seqs/silva_nr_v132_train_set.fa", multithread=TRUE)
-#TAX <- addSpecies(TAX, "../../ref_seqs/DADA2/silva_species_assignment_v132.fa")
-#saveRDS(TAX,"processing/16s__merged/tax_table.rds")
+TAX <- assignTaxonomy(seqtab, "../../ref_seqs/silva_nr_v132_train_set.fa", multithread=TRUE)
+saveRDS(TAX,"processing/16s__merged/tax_table.rds")
 TAX = readRDS("processing/16s__merged/tax_table.rds")
 dim(TAX)
 TAX.print <- TAX # Removing sequence rownames for display only

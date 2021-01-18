@@ -1,3 +1,8 @@
+#This script sets parameters and runs DADA2 pipeline on various 16S datasets
+#datasets vary based on input folder location 
+#Moeller et al. dataset are single-end, all other datasets are paired end 
+#QC and read-length varies across datasets truncation parameters also vary
+
 library(dada2); packageVersion("dada2");
 library(phyloseq)
 library(tidyverse)
@@ -9,6 +14,7 @@ source('scripts/processing/16s/DADA2_single.R')
 metadata_file='metadata/metadata_all_samples_16S.txt'
 metadata <- read.csv(metadata_file,sep='\t')
 getid <- function(old_id){
+  #rename sample IDs
   new_id= metadata$X.SampleID[metadata$Old_SampleID==old_id]
   return(new_id)
 }
@@ -146,7 +152,6 @@ trunc_parameters = c(250)
 #no truncation length specified
 #run DADA2 pipeline
 DADA2_single(forward_reads, sample.names, outdir, trunc_parameters)
-
 ################
 
 

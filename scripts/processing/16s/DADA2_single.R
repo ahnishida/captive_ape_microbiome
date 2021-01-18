@@ -1,3 +1,8 @@
+#This script is a function called by DADA2_V4.R 
+#performs DADA2 QC/trimming/error correction/chimera removal on single end reads
+#inputs sample fastqs with primers trimmed for an individual V4 dataset
+#outputs an ASVs tableand summary of reads removed at each filtering step.
+
 DADA2_single <- function(forward_reads, sample.names, outdir, trunc_parameters){
 #Defining output directory/fastqs
 filtered_path <- paste0(outdir,"/filtered_reads" )

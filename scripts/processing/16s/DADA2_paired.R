@@ -1,4 +1,7 @@
-#
+# This script is a function called by DADA2_V4.R 
+# performs DADA2 QC/trimming/error correction/chimera removal on paired end reads
+# inputs sample fastqs with primers trimmed for an individual V4 dataset
+# outputs an ASVs tableand summary of reads removed at each filtering step.
 
 DADA2_paired <- function(forward_reads, reverse_reads, sample.names, outdir, trunc_parameters) {
 
@@ -13,7 +16,7 @@ filtered_out = filterAndTrim(fwd=forward_reads, filt=filtered_forward, rev=rever
                                truncLen=trunc_parameters, 
                                maxN=0, maxEE=2,
                                compress=TRUE, verbose=TRUE,multithread =TRUE)
-  
+
 #Dereplication
 derep_forward <- derepFastq(filtered_forward, verbose=TRUE)
 derep_reverse <- derepFastq(filtered_reverse, verbose=TRUE)
