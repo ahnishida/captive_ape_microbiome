@@ -15,8 +15,8 @@ Published fastq metadata are listed in Table S1
 
 #### File structure
 This study analyzes two seperate datasets - 16S and gyrb amplicon datasets.
-Scripts in the processing folder:\n
--Perform QC filtering, remove primers, error correction on raw fastq\n
--Generate ASV table, rarefy, assign taxomony, generate phylogeny,\n correct metadata into the inputs fold\n
-Scripts in the analysis folder:\n
--Uses data in the inputs folder to perform all analyses, generate\n figures and tables
+##### Scripts in the processing folder
+-Perform QC filtering, remove primers, error correction on raw fastq
+-Generate ASV table, rarefy, assign taxomony, generate phylogeny,correct metadata into the inputs fold
+##### Scripts in the analysis folder:
+-Uses data in the inputs folder to perform all analyses, generatefigures and tables
