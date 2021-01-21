@@ -6,7 +6,9 @@ library("cowplot")
 library("reshape2")
 library("RVAideMemoire")
 library("RColorBrewer")
+library('rstatix')
 
+setwd('/Volumes/AHN/captive_ape_microbiome/') #SET WORKING DIRECTORY
 #INPUTS
 physeq16s <- readRDS('results/16s/inputs/phyloseq_rare10000.rds') #read in physeq
 HR_table <- read.table('results/16s/analyses/tables/16S_ASVs_summary.txt',sep='\t',header=T)
@@ -20,7 +22,7 @@ dir.create(figure_outdir,recursive=TRUE)
 
 #set colors for groups
 description_color_scale <- levels(as.factor(metadata$Description))
-(description_color_scale <- as.vector(recode(description_color_scale, wild_gorilla = "darkgreen",
+description_color_scale <- as.vector(recode(description_color_scale, wild_gorilla = "darkgreen",
                                              wild_chimp = "darkorange2",
                                              wild_bonobo = "red2",
                                              industrialized_human = "blue",
@@ -28,14 +30,14 @@ description_color_scale <- levels(as.factor(metadata$Description))
                                              captive_gorilla = "darkolivegreen3",
                                              captive_chimp = "tan1",
                                              captive_bonobo = "indianred2",
-                                             captive_orangutan="plum3")))
+                                             captive_orangutan="plum3"))
 
 #ORDINATION
-#calculate distances
+print('calculating beta diversity distance metrics')
 physeq16s_bray <- phyloseq::distance(physeq16s,'bray')
-physeq16s_jaccard <- phyloseq::distance(physeq16s,'jaccard')
-physeq16s_wunifrac <- phyloseq::distance(physeq16s,'weighted_unifrac')
-physeq16s_uunifrac <- phyloseq::distance(physeq16s,'unweighted_unifrac')
+#physeq16s_jaccard <- phyloseq::distance(physeq16s,'jaccard')
+#physeq16s_wunifrac <- phyloseq::distance(physeq16s,'weighted_unifrac')
+#physeq16s_uunifrac <- phyloseq::distance(physeq16s,'unweighted_unifrac')
 
 ordinate_NMDS <- function(physeq,physeq_dist){
   ord_nMDS<- metaMDS(comm= physeq_dist,
@@ -61,17 +63,18 @@ ordinate_NMDS <- function(physeq,physeq_dist){
   return(plot_ord)
 }
 
-plot_nmds_bray <- ordinate_NMDS(physeq16s,physeq16s_bray) #Figure1
+print('NMDS ordinations')
+capture.output(plot_nmds_bray <- ordinate_NMDS(physeq16s,physeq16s_bray),file='nul') #Figure1
 ggsave(plot_nmds_bray, file = file.path(figure_outdir,'Fig1_nMDS_bray.pdf'),width=6,height=5)
-plot_nmds_jaccard <- ordinate_NMDS(physeq16s,physeq16s_jaccard)
-plot_nmds_wunifrac <- ordinate_NMDS(physeq16s,physeq16s_wunifrac)
-plot_nmds_uunifrac <- ordinate_NMDS(physeq16s,physeq16s_uunifrac)
-plot_nmds_othermetrics <- plot_grid(plot_nmds_jaccard,
-                                    plot_nmds_wunifrac,
-                                    plot_nmds_uunifrac,
-                                    ncol=1,
-                                    labels = "AUTO")
-ggsave(plot_nmds_othermetrics, file = file.path(figure_outdir,'FigS2_nMDS_othermetrics.pdf'),width=6,height=14)
+#capture.output(plot_nmds_jaccard <- ordinate_NMDS(physeq16s,physeq16s_jaccard),file='nul')
+#capture.output(plot_nmds_wunifrac <- ordinate_NMDS(physeq16s,physeq16s_wunifrac),file='nul')
+#capture.output(plot_nmds_uunifrac <- ordinate_NMDS(physeq16s,physeq16s_uunifrac),file='nul')
+#plot_nmds_othermetrics <- plot_grid(plot_nmds_jaccard,
+#                                    plot_nmds_wunifrac,
+#                                    plot_nmds_uunifrac,
+#                                    ncol=1,
+#                                    labels = "AUTO")
+#ggsave(plot_nmds_othermetrics, file = file.path(figure_outdir,'FigS2_nMDS_othermetrics.pdf'),width=6,height=14)
 
 #BETADISPER and PERMANOVA - Description all groups
 run_betadisper_permanova_dist <- function(physeq,physeq_dist){
@@ -93,15 +96,15 @@ run_betadisper_permanova_dist <- function(physeq,physeq_dist){
   return(beta_perm_res)
 }
 
-#BETADISPER and PERMANOVA
+print('BETADISPER and PERMANOVA')
 print('bray-curtis')
 (beta_perm_bray <- run_betadisper_permanova_dist(physeq16s,physeq16s_bray))
 print('jaccard')
-(beta_perm_jaccard <- run_betadisper_permanova_dist(physeq16s,physeq16s_jaccard))
+#(beta_perm_jaccard <- run_betadisper_permanova_dist(physeq16s,physeq16s_jaccard))
 print('weighted unifrac')
-(beta_perm_wunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_wunifrac))
+#(beta_perm_wunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_wunifrac))
 print('unweighted unifrac')
-(beta_perm_uunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_uunifrac))
+#(beta_perm_uunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_uunifrac))
 
 #PAIRWISE BETADISPER and PERMANOVA
 #extract physeq for each of the pairwise group comparisons
@@ -111,12 +114,13 @@ pw_comps <- combn(Descriptions,2) #generate list of all combinations of 2 descri
 pw_comps <- as.data.frame(t(pw_comps)) #format into dataframe
 colnames(pw_comps) <- c('group1','group2')
 pw_df = data.frame()
+print('calculate pairwise permanova distances between groups')
 for (i in 1:nrow(pw_comps)){
   pw <- pw_comps[i,]
   print(pw) #pairwise comparison
   physeq_pw <- subset_samples(physeq16s,Description==pw$group1|Description==pw$group2) #subset physeq to two groups
   physeq_pw_dist <- phyloseq::distance(physeq_pw,'bray') #calculate distance
-  beta_perm_res <- run_betadisper_permanova_dist(physeq_pw,physeq_pw_dist) #run betadisper and permanova
+  capture.output(beta_perm_res <- run_betadisper_permanova_dist(physeq_pw,physeq_pw_dist),file='nul') #run betadisper and permanova
   res <- c(pw$group1,pw$group2,beta_perm_res) #generate new line with group names and results
   pw_df <- rbind(pw_df,res) #bind new row to dataframe
   }
@@ -135,19 +139,42 @@ metadata$Description_country_zoo <- paste(metadata$Description,metadata$country_
 sample_data(physeq16s) <- metadata
 
 #COMPOSITION BY PHYLA
+print('merging samples by description to visualize average relative abundances of phyla')
 physeq16s_Description_Mean <-  merge_samples(physeq16s, "Description") #collaspe samples into groups based on species and captivity status
 otu_table(physeq16s_Description_Mean) <- otu_table(physeq16s_Description_Mean)/sample_sums(physeq16s_Description_Mean) #format count to relative abundance
-physeq16s_Description_Mean <- psmelt(physeq16s_Description_Mean)
+physeq16s_Description_Mean <- psmelt(physeq16s_Description_Mean) #collaspe to dataframe with metadata
 sample_ordered <- c("wild_bonobo","wild_chimp","wild_gorilla","captive_bonobo","captive_chimp",
                     "captive_gorilla","captive_orangutan",
                     "non_industrialized_human","industrialized_human")
 physeq16s_Description_Mean$Sample <- factor(physeq16s_Description_Mean$Sample, levels =sample_ordered)
 
-Phylum_over01 <- physeq16s_Description_Mean %>%
+print('generating list of phyla that reach mean relative abundance of 1% in one sample group')
+options(dplyr.summarise.inform=F)
+Phylum_over01 <- physeq16s_Description_Mean %>% 
   group_by(Phylum) %>%
   summarise(max_abundance=max(Abundance)) %>%
   as.data.frame() %>%
   filter(max_abundance>.01)
+
+print('summary of the mean relative abundance of bacterial phylum across sample groups')
+(physeq16s_Description_Mean %>% 
+    filter(Phylum %in% Phylum_over01$Phylum) %>%
+    group_by(Phylum,Sample) %>% 
+    summarise(mean_abundance=sum(Abundance)) %>%
+    as.data.frame() %>% 
+    spread(key = Phylum, value=mean_abundance))
+print('summary of the mean relative abundance of HR ASVs across sample groups')
+(physeq16s_Description_Mean %>% 
+    group_by(HR_cat,Sample) %>% 
+    summarise(mean_abundance=sum(Abundance)) %>%
+    as.data.frame() %>% 
+    spread(key = HR_cat, value=mean_abundance))
+(physeq16s_Description_Mean %>% 
+  group_by(HR_type,Sample) %>% 
+  summarise(mean_abundance=sum(Abundance)) %>%
+  as.data.frame() %>% 
+  spread(key = HR_type, value=mean_abundance))
+
 
 plot_phyla_abund <- physeq16s_Description_Mean %>%
   group_by(Sample,Phylum) %>% #group all ASVs within a HR_type
@@ -168,14 +195,12 @@ otu_table(physeq16s_stats) <- otu_table(physeq16s_stats)/sample_sums(physeq16s_s
 physeq16s_melt <- psmelt(physeq16s_stats) #combines taxa table, metadata, and otu table into df
 
 kw_abund_Taxa <- function(TaxLevel,TaxName,nComp){
-
   #runs kruskal-wallis and posthoc dunn test on abundance of bacterial phylum across group descriptions
   physeq16s_Taxa <- physeq16s_melt %>%
     filter(!!sym(TaxLevel)==TaxName) %>% #subset to the just taxa of interest
     group_by(Sample,captivity_status,Description) %>%  #group all ASVs within an individual, keep group metadata
     summarise(Abundance = sum(Abundance)) %>% #merge ASVs to get their sum
     as.data.frame()
-
    #get captive vs wild  means
   cpwd_means <- physeq16s_Taxa %>%
     filter(captivity_status=='wild'|captivity_status=='captive') %>%
@@ -196,32 +221,33 @@ kw_abund_Taxa <- function(TaxLevel,TaxName,nComp){
   #captive vs wild all species
   cp_wd <- physeq16s_Taxa %>% filter(captivity_status=='captive'|captivity_status=='wild')
   if (max(cp_wd$Abundance)>0){ #check to make sure values in wild and captive apes
-      cp_wd_kw <- kruskalTest(Description ~ Abundance, cp_wd, dist="KruskalWallis")
-      (cp_wd_kw_adj <- p.adjust(cp_wd_kw$p.value,method = "fdr",n = nComp))} else {cp_wd_kw_adj <- NA}
+    res.kruskal <- cp_wd  %>% kruskal_test(Abundance ~ captivity_status)
+    (cp_wd_kw_adj <- p.adjust(res.kruskal$p,method = "fdr",n = nComp))} else {cp_wd_kw_adj <- NA}
+  
   #captive vs wild bonobo
   bonobo_comp <- physeq16s_Taxa %>% filter(Description=='captive_bonobo'|Description=='wild_bonobo')
-    if (max(bonobo_comp$Abundance)>0){
-    (kw.res <- kruskalTest(Description ~ Abundance, bonobo_comp,dist="KruskalWallis"))
-    bonobo_kw_pval_adj <- p.adjust(kw.res$p.value,method = "fdr",n =nComp)
-    } else {bonobo_kw_pval_adj <- NA}
+  if (max(bonobo_comp$Abundance)>0){
+    res.kruskal <- bonobo_comp  %>% kruskal_test(Abundance ~ captivity_status)
+    (bonobo_kw_pval_adj <- p.adjust(res.kruskal$p,method = "fdr",n = nComp))} else {bonobo_kw_pval_adj <- NA}
+  
   #captive vs wild chimp
   chimp_comp <- physeq16s_Taxa %>% filter(Description=='captive_chimp'|Description=='wild_chimp')
-    if (max(chimp_comp$Abundance)>0){
-    (kw.res <- kruskalTest(Description ~ Abundance, chimp_comp,dist="KruskalWallis"))
-    (chimp_kw_pval_adj <- p.adjust(kw.res$p.value,method = "fdr",n =nComp))
-    } else {chimp_kw_pval_adj <- NA}
+  if (max(chimp_comp$Abundance)>0){
+    res.kruskal <- chimp_comp %>% kruskal_test(Abundance ~ captivity_status)
+    (chimp_kw_pval_adj <- p.adjust(res.kruskal$p,method = "fdr",n = nComp))} else {chimp_kw_pval_adj <- NA}
+  
   #captive vs wild gorilla
   gorilla_comp <- physeq16s_Taxa %>% filter(Description=='captive_gorilla'|Description=='wild_gorilla')
-    if (max(gorilla_comp$Abundance)>0){
-    (kw.res <- kruskalTest(Description ~ Abundance, gorilla_comp,dist="KruskalWallis"))
-    (gorilla_kw_pval_adj <- p.adjust(kw.res$p.value,method = "fdr",n =nComp))
-    } else {gorilla_kw_pval_adj <- NA}
-
+  if (max(gorilla_comp$Abundance)>0){
+    res.kruskal <- gorilla_comp %>% kruskal_test(Abundance ~ captivity_status)
+    (gorilla_kw_pval_adj <- p.adjust(res.kruskal$p,method = "fdr",n = nComp))} else {gorilla_kw_pval_adj <- NA}
+  
   res <- c(TaxName,cpwd_means,group_means,cp_wd_kw_adj,bonobo_kw_pval_adj,chimp_kw_pval_adj,gorilla_kw_pval_adj)
   names(res) <- c(TaxLevel,paste0(colnames(cpwd_means),'_mean'),paste0(colnames(group_means),'_mean'),'captive_vs_wild_allspecies','captive_vs_wild_bonobo','captive_vs_wild_chimp','captive_vs_wild_gorilla')
   return(res)
 }
 
+print('kruskal-wallis differential abundance test')
 kw_abund_Taxa('Phylum','Actinobacteria',4) #test on a single phylum
 kw_abund_Taxa('Genus','Bifidobacterium',4) #test on a single genus
 
@@ -236,17 +262,20 @@ num_col <- colnames(kw_phylum_df)[2:length(colnames(kw_phylum_df))] #numeric col
 kw_phylum_df <- kw_phylum_df %>% mutate_each_(funs(as.numeric), num_col) #change from character to numeric
 write.table(kw_phylum_df,file=file.path(table_outdir,'Table_kruskal_wallis_phyla.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
+print(kw_phylum_df %>% select(Phylum,captive_mean,wild_mean,
+                              captive_vs_wild_allspecies,captive_vs_wild_bonobo,
+                              captive_vs_wild_chimp,captive_vs_wild_gorilla))
 #COMPOSITION BY HR_TYPE
 HR_type_ordered <- c("Unique_CP","MX_human_wild_apes","MX_wild_apes",
                      "HR_human","HR_wild_gorilla","HR_wild_chimp","HR_wild_bonobo")
 physeq16s_Description_Mean$HR_type <- factor(physeq16s_Description_Mean$HR_type, levels = HR_type_ordered )
-(HRpalette <- as.vector(recode(HR_type_ordered, HR_wild_gorilla = "darkgreen",
+HRpalette <- as.vector(recode(HR_type_ordered, HR_wild_gorilla = "darkgreen",
                                HR_wild_chimp = "darkorange2",
                                HR_wild_bonobo = "red2",
                                HR_human = "dodgerblue",
                                MX_human_wild_apes = "goldenrod",
                                MX_wild_apes = "maroon",
-                               Unique_CP='purple')))
+                               Unique_CP='purple'))
 plot_phyla_abund_HR <- physeq16s_Description_Mean %>%
   group_by(Sample,HR_type) %>% #group all ASVs within a HR_type
   summarise(Abundance = sum(Abundance)) %>% #merge ASVs to get their sum
@@ -261,55 +290,64 @@ plot_phyla_abund_HR <- physeq16s_Description_Mean %>%
 
 
 #COMPOSITION BY HR_TYPE - STATS
+print('running statistics compare relative abundance of host-restricted between sample groups')
+
 kw_dunn <- function(df,nComp) {
   #runs Kruskal Wallis and if significant runs dunns posthoc
-  kw.res <- kruskalTest(captivity_status ~ Abundance, df,dist="KruskalWallis")
-  print(kw.res)
-  pval <- p.adjust(kw.res$p.value,method = "fdr",n = nComp)
+  res.kruskal <- df %>% kruskal_test(Abundance ~ captivity_status)
+  #print(res.kruskal)
+  pval <- p.adjust(res.kruskal$p,method = "fdr",n = nComp)
   print(c(pval,'pval_adjusted'))
   if (length(unique(df$captivity_status))>2 & pval<.05){
     df$captivity_status <- as.factor(df$captivity_status)
     print(kwAllPairsDunnTest(Abundance ~ captivity_status, df,
-                       p.adjust.method = "fdr")) }
-  }
+                             p.adjust.method = "fdr")) }
+}
 
 HR_type_stats <-function(physeq_melt){
-  #
+  
   df <- physeq_melt %>%
     group_by(Sample,captivity_status,Description,HR_type) %>%  #group all ASVs within an individual, keep group metadata
     summarise(Abundance = sum(Abundance)) %>% #merge ASVs to get their sum
     as.data.frame()
-
-  print('HR_human')
+  df$captivity_status <- recode(df$captivity_status,non_industrialized_human='human') 
+  df$captivity_status <- recode(df$captivity_status,industrialized_human='human')
+  
+  print('comparing relative abundance of HR_human ASVs, humans vs. all captive ape species')
   HR_human <- df %>% #remove wild apes
     filter(HR_type == 'HR_human' & captivity_status != 'wild')
+  #recode non-industrialized and industrialized humans as 
   kw_dunn(HR_human,6)
-  print('HR_wild_gorilla')
+
+  print('comparing relative abundance of HR_wild_gorilla ASVs, wild gorillas vs. all captive ape species')
   HR_wild_gorilla  <- df %>%
     filter(HR_type == 'HR_wild_gorilla') %>%
     filter(captivity_status == "captive" | Description == "wild_gorilla")
   kw_dunn(HR_wild_gorilla,6)
-  print('HR_wild_chimp')
+
+  print('comparing relative abundance of HR_wild_chimp ASVs, wild chimps vs. all captive ape species')
   HR_wild_chimp  <- df %>%
     filter(HR_type == 'HR_wild_chimp') %>%
     filter(captivity_status == "captive" | Description == "wild_chimp")
   kw_dunn(HR_wild_chimp,6)
-  print('HR_wild_bonobo')
+
+  print('comparing relative abundance of HR_wild_bonobo ASVs, wild bonobos vs. all captive ape species')
   HR_wild_bonobo  <- df %>%
     filter(HR_type == 'HR_wild_bonobo') %>%
     filter(captivity_status == "captive"| Description == "wild_bonobo")
-  kw_dunn(HR_wild_bonobo,6)
-  print('MX_wild_apes')
+  kw_dunn(HR_wild_chimp,6)
+
+  print('comparing relative abundance of MX_wild_apes ASVs, wild apes vs. captive apes')
   MX_wild_apes  <- df %>%
-    filter(HR_type == 'MX_wild_apes') %>%
-    filter(captivity_status == "captive"| Description == "wild_bonobo")
+    filter(HR_type == 'MX_wild_apes' & captivity_status != 'human') 
   kw_dunn(MX_wild_apes,6)
-  print('MX_human_wild_apes')
+
+  print('comparing relative abundance of MX_human_wild_apes ASVs, wild apes vs. captive apes. vs humans')
   MX_human_wild_apes  <- df %>%
     filter(HR_type == 'MX_human_wild_apes')
   kw_dunn(MX_human_wild_apes,6)
-}
 
+}
 HR_type_stats(physeq16s_melt)
 
 #BACTERIAL GENERA DIFF ABUNDANCE IN WILD AND CAPTIVE APES
@@ -337,17 +375,29 @@ Genera_enriched_captive <- kw_Genera_df %>% filter(captive_vs_wild_allspecies < 
                                   filter(captive_gorilla_mean > wild_gorilla_mean)
 Genera_enriched_captive_over01 <- Genera_enriched_captive %>%
   filter(captive_bonobo_mean>.01&captive_chimp_mean>.01&captive_gorilla_mean>.01)
-
+print('Bacterial genera enriched in all captive ape species present at >1% abundance')
+print(Genera_enriched_captive_over01 %>% select(Genus,captive_mean,wild_mean,
+                                                    captive_vs_wild_allspecies,captive_vs_wild_bonobo,
+                                                    captive_vs_wild_chimp,captive_vs_wild_gorilla))
 #Identify bacterial genera depleted in captive vs. wild
-Genera_depleted_captive_onecomp <- kw_Genera_df %>% filter(
-  (as.numeric(captive_vs_wild_bonobo) < .05 & captive_bonobo_mean < wild_bonobo_mean & wild_bonobo_mean>.01) |
-  (captive_vs_wild_chimp < .05 & captive_chimp_mean < wild_chimp_mean & wild_chimp_mean> .01) |
-  (captive_vs_wild_gorilla < .05 & captive_gorilla_mean < wild_gorilla_mean & wild_gorilla_mean > .01))
+Genera_depleted_captive_onecomp <- kw_Genera_df %>% 
+  filter(captive_mean < wild_mean & captive_vs_wild_allspecies < .05) %>%
+  filter(
+  (as.numeric(captive_vs_wild_bonobo) < .05 & captive_bonobo_mean < wild_bonobo_mean & wild_bonobo_mean>.02) |
+  (captive_vs_wild_chimp < .05 & captive_chimp_mean < wild_chimp_mean & wild_chimp_mean> .02) |
+  (captive_vs_wild_gorilla < .05 & captive_gorilla_mean < wild_gorilla_mean & wild_gorilla_mean > .02))
+print('Bacterial genera depleted in captive apes vs wild apes in one species comparison, present at >2% abundance')
+print(Genera_depleted_captive_onecomp %>% select(Genus,captive_mean,wild_mean,
+                                                captive_vs_wild_allspecies,captive_vs_wild_bonobo,
+                                                captive_vs_wild_chimp,captive_vs_wild_gorilla))
 
-#run HR stats on genera enriched/depleted
+print('run HR stats on genera enriched/depleted')
+print('shows same trends across all ASVs')
+print('HR stats for genera enriched in captive apes')
 physeq16s_melt_Genera_enriched <- physeq16s_melt %>%
   filter(Genus %in% Genera_enriched_captive_over01$Genus)
 HR_type_stats(physeq16s_melt_Genera_enriched)
+print('HR stats for genera depleted in captive apes')
 physeq16s_melt_Genera_depleted <- physeq16s_melt %>%
   filter(Genus %in% Genera_depleted_captive_onecomp$Genus)
 HR_type_stats(physeq16s_melt_Genera_depleted)
@@ -526,12 +576,16 @@ plot_alpha_figure <- function(alpha_div_table, category, metric, color_vec) {
   return(alpha_plot)
 }
 
+print('run alpha diversity statistics')
 kw_dunn_alpha <- function(df,nComp) {
   #runs Kruskal Wallis and if significant runs dunns posthoc
   df <- df %>% filter(captivity_status == 'wild ape' | captivity_status == 'captive ape' )
-  kw.res <- kruskalTest(captivity_status ~ Observed, df,dist="KruskalWallis")
-  pval <- p.adjust(kw.res$p.value,method = "fdr",n = nComp)
+  print(df %>% group_by(captivity_status) %>% summarise(mean(Observed)))
+  (kw.res <- df %>% kruskal_test(Observed ~ captivity_status))
+  pval <- p.adjust(kw.res$p,method = "fdr",n = nComp)
   print(c(pval,'pval_adjusted'))
+  
+ 
 }
 
 description_site_colors <- c("indianred2","tan1","tan1","darkolivegreen3","darkolivegreen3","darkolivegreen3",
@@ -542,12 +596,14 @@ alphadiv_alltaxa <- calc_alpha_div(physeq16s)
 write.table(alphadiv_alltaxa,file=file.path(table_outdir,'alpha_div_16S.txt'),
             sep='\t', quote=F, row.names = F)
 
+print('Comparing # of All ASVs in captive vs. wild apes of all host species')
 plot_alphadiv_allASVs <- plot_alpha_figure(alphadiv_alltaxa,'Description_country_zoo','Observed',description_site_colors) +
   theme(axis.text.x = element_blank()) +
   ylab('All ASVs')
 kw_dunn_alpha(alphadiv_alltaxa,5)
 
 #Plot alpha diversity for each of the major phyla
+print('Comparing # of Actinobacteria ASVs in captive vs. wild apes of all host species')
 phylum_physeq16s <- subset_taxa(physeq16s,Phylum=='Actinobacteria')
 Actinobacteria_physeq16s <- prune_samples(sample_sums(phylum_physeq16s)>0, phylum_physeq16s)
 alphadiv_Actinobacteria <- calc_alpha_div(Actinobacteria_physeq16s)
@@ -556,6 +612,7 @@ plot_alphadiv_Actinobacteria <- plot_alpha_figure(alphadiv_Actinobacteria,'Descr
   ylab('Actinobacteria ASVs')
 kw_dunn_alpha(alphadiv_Actinobacteria,5)
 
+print('Comparing # of Bacteroidetes ASVs in captive vs. wild apes of all host species')
 phylum_physeq16s <- subset_taxa(physeq16s,Phylum=='Bacteroidetes')
 Bacteroidetes_physeq16s <- prune_samples(sample_sums(phylum_physeq16s)>0, phylum_physeq16s)
 alphadiv_Bacteroidetes <- calc_alpha_div(Bacteroidetes_physeq16s)
@@ -564,6 +621,7 @@ plot_alphadiv_Bacteroidetes <- plot_alpha_figure(alphadiv_Bacteroidetes,'Descrip
   ylab('Bacteroidetes ASVs')
 kw_dunn_alpha(alphadiv_Bacteroidetes,5)
 
+print('Comparing # of Firmicutes ASVs in captive vs. wild apes of all host species')
 phylum_physeq16s <- subset_taxa(physeq16s,Phylum=='Firmicutes')
 Firmicutes_physeq16s <- prune_samples(sample_sums(phylum_physeq16s)>0, phylum_physeq16s)
 alphadiv_Firmicutes <- calc_alpha_div(Firmicutes_physeq16s)
@@ -572,6 +630,7 @@ plot_alphadiv_Firmicutes <- plot_alpha_figure(alphadiv_Firmicutes,'Description_c
   ylab('Firmicutes ASVs')
 kw_dunn_alpha(alphadiv_Firmicutes,5)
 
+print('Comparing # of Proteobacteria ASVs in captive vs. wild apes of all host species')
 phylum_physeq16s <- subset_taxa(physeq16s,Phylum=='Proteobacteria')
 Proteobacteria_physeq16s <- prune_samples(sample_sums(phylum_physeq16s)>0, phylum_physeq16s)
 alphadiv_Proteobacteria <- calc_alpha_div(Proteobacteria_physeq16s)
@@ -609,7 +668,7 @@ occ_abund_HRcat_filt <- occ_abund_HRcat %>% filter(asv_occ < 200)
 ggsave(plot_occ_abund_HRcat, file = file.path(figure_outdir,'FigS5_occ_abund_HRcat.pdf'))
 
 library(broom)
-#model fit
+print('log mean rel abund vs. samples observed model fit')
 occ_abund_HRcat_filt %>%
   select(HR_cat,asv_occ,asv_rel) %>% nest(-HR_cat) %>%
   mutate(fit = map(data, ~mgcv::gam(asv_occ ~ s(log(asv_rel), bs = "cs"), data = .)),
@@ -619,7 +678,13 @@ occ_abund_HRcat_filt %>%
   select(-data, -fit)
 
 #TAXONOMY OF HOST-RESTRICTED ASV
+print('distribution of ASVs by HR category and taxonomy')
 table(tax_table(physeq16s)[,'HR_cat'])
+data.frame(tax_table(physeq16s)) %>%
+  filter(Phylum %in% Phylum_over01$Phylum) %>%
+  group_by(Phylum,HR_cat) %>%
+  tally() %>%
+  spread(key=HR_cat,value=n)
 
 physeq16s_HR_tax <- data.frame(tax_table(physeq16s)) %>%
   group_by(Phylum,HR_cat) %>%
@@ -641,9 +706,9 @@ physeq16s_HR_tax_chi <- physeq16s_HR_tax %>%
   as.data.frame() %>%
   column_to_rownames(var='Phylum')
 (chisq <- chisq.test(physeq16s_HR_tax_chi))
-chisq$residuals
+print('relative contributions of phyla to statistic')
 contrib <- 100*chisq$residuals^2/chisq$statistic
-round(contrib, 3)
+(round(contrib, 3))
 
 #distribution of captive-ape ASVs across enclosures/host species/sites
 CP_ASVs<- HR_table %>% filter(CP_pres=='True')
@@ -680,23 +745,24 @@ df <- df %>%
     ylab('Proportion of shared ASVs'))
 ggsave(Fig3_dist_site_sp_comp,file=file.path(figure_outdir,'Fig3_dist_site_sp_comp.pdf'))
 
+print('running stats for figure 3, comparing sorenson similarity indexes among pairwise comparisons')
 diff_species_diff_site <- df$dist[df$species_site_comp=='diff_species_diff_site']
 same_species_diff_site <- df$dist[df$species_site_comp=='same_species_diff_site']
 diff_species_same_site <- df$dist[df$species_site_comp=='diff_species_same_site']
 same_species_same_site <- df$dist[df$species_site_comp=='same_species_same_site']
 
 (test <- perm.t.test(diff_species_diff_site,same_species_diff_site))
-p.adjust(test$p.value,method = "fdr",n = 6)
+print(c('fdr adj pvalue',p.adjust(test$p.value,method = "fdr",n = 6)))
 (test <- perm.t.test(diff_species_diff_site,diff_species_same_site))
-p.adjust(test$p.value,method = "fdr",n = 6)
+print(c('fdr adj pvalue',p.adjust(test$p.value,method = "fdr",n = 6)))
 (test <-perm.t.test(diff_species_diff_site,same_species_same_site))
-p.adjust(test$p.value,method = "fdr",n = 6)
+print(c('fdr adj pvalue',p.adjust(test$p.value,method = "fdr",n = 6)))
 (test <-perm.t.test(diff_species_same_site,same_species_diff_site))
-p.adjust(test$p.value,method = "fdr",n = 6)
+print(c('fdr adj pvalue',p.adjust(test$p.value,method = "fdr",n = 6)))
 (test <-perm.t.test(diff_species_same_site,same_species_same_site))
-p.adjust(test$p.value,method = "fdr",n = 6)
+print(c('fdr adj pvalue',p.adjust(test$p.value,method = "fdr",n = 6)))
 (test <-perm.t.test(same_species_diff_site,same_species_same_site))
-p.adjust(test$p.value,method = "fdr",n = 6)
+print(c('fdr adj pvalue',p.adjust(test$p.value,method = "fdr",n = 6)))
 
 df_same_site <- df %>% filter(species_site_comp=='diff_species_same_site')
 df_same_site <- df_same_site %>%
@@ -717,4 +783,4 @@ ggsave(plot_shared_ASVs_wn_site,
 #to see how much these samples contribute to the analysis
 diff_species_same_site_excludeHOUS <- df_same_site$dist[df_same_site$within_sites_comp!='houston_zoo_chimp_vs_gorilla']
 (test <- perm.t.test(diff_species_diff_site,diff_species_same_site_excludeHOUS))
-p.adjust(test$p.value,method = "fdr",n = 6)
+print(c('fdr adj pvalue',p.adjust(test$p.value,method = "fdr",n = 6)))

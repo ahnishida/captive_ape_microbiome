@@ -149,26 +149,6 @@ trimAlign <- function(aln_in,aln_out){
   Biostrings::writeXStringSet(alnTrimFilt,file=aln_out)
 }
 
-#no ref taxa phylogeny
-asv_fasta_filt <- Biostrings::readDNAStringSet(file.path(processing_folder,"ASVs_filtered.fasta")) #read in nuc fasta
-asv_aln <- AlignTranslation(DNAStringSet(asv_fasta_filt,start=2)) #align based on AA sequences
-Biostrings::writeXStringSet(asv_aln,file.path(processing_folder,'phylogeny','ASVs_filtered_aln.fasta')) #write alignment
-trimAlign(file.path(processing_folder,'phylogeny','ASVs_filtered_aln.fasta'), #trim alignment to where ASV1 starts and ends
-          file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim.fasta"))
-system(paste0('./FastTree-2.1.9 -nt -gtr <  ', 
-              file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim.fasta"), #generate phylogeny using fasttree
-              ' > ',
-              file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim.tre")))
-asv_tree <- ape::read.tree(file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim.tre")) #read in phylogeny
-mrca <- findMRCA(asv_tree,F082_ASVs) #find outgroup
-asv_tree_rooted <- reroot(asv_tree,mrca) #reroot phylogeny based on outgroup
-ape::write.tree(asv_tree_rooted,"tmp.tre")
-system(paste0("sed 's/Root;/;/g'  tmp.tre > ", #remove Root; from end of file so that phyloseq likes it
-              file.path(processing_folder,'phylogeny',"ASVs_filtered_aln_trim_rooted.tre")))
-
-ps_Bacteroidales_asvTree <- merge_phyloseq(ps_Bacteroidales,asv_tree_rooted)
-saveRDS(ps_Bacteroidales_asvTree,file.path(processing_folder,"ps_Bacteroidales_asvTree.rds"))
-
 #ref taxa phylogeny
 asv_ref <- c(bacteroidales_ref,DNAStringSet(asv_fasta_filt,start=2)) #read in nuc fasta with ref gyrb seqs from gtdbtk
 Biostrings::writeXStringSet(asv_ref,file=file.path(processing_folder,'phylogeny',"ASVs_filtered_ref.fasta")) #write ASVs with ref fasta

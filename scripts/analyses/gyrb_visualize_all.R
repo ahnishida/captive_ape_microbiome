@@ -1,4 +1,3 @@
-setwd('/Volumes/AHN/captive_ape_microbiome')
 library(ape)
 library(ggtree)
 library(tidyverse)
@@ -6,28 +5,32 @@ library(phytools)
 library(cowplot)
 library(ggplot2)
 
+setwd('/Volumes/AHN/captive_ape_microbiome') #SET WORKING DIR
+
 #summarize 16S and gyrB ASV distrbutions
 HR_16S <- read.table('results/16s/analyses/tables/16S_ASVs_summary.txt',sep='\t',header=T)
 HR_16S <- HR_16S %>% filter(Order == 'Bacteroidales') 
 All_16S <- HR_16S %>% group_by(HR_type) %>% tally()
-All_16S$cat <- '16S all samples'
+All_16S$cat <- '16S Bacteroidales ASVs all samples'
 CP_16S <- HR_16S %>% filter(CP_pres=='True') %>% group_by(HR_type) %>% tally()
-CP_16S$cat <- '16S captive apes'
+CP_16S$cat <- '16S Bacteroidales ASVs captive apes'
 
 HR_gyrb <- read.table('results/gyrb/analyses/tables/gyrb_asv_hr_table.txt',sep='\t',header=T)
-table(HR_gyrb$HR_cat)
 All_gyrb <- HR_gyrb  %>% group_by(HR_type) %>% tally()
-All_gyrb$cat <- 'gyrb all samples'
+All_gyrb$cat <- 'gyrb ASVs all samples'
 CP_gyrb <- HR_gyrb %>% filter(CP_pres=='True') %>% group_by(HR_type) %>% tally()
-CP_gyrb$cat <- 'gyrb captive apes'
+CP_gyrb$cat <- 'gyrb ASVs captive apes'
 HR_16S_gyrb <- bind_rows(All_16S,CP_16S,All_gyrb,CP_gyrb)
-(HRpalette <- as.vector(recode(unique(HR_16S_gyrb$HR_type), HR_wild_gorilla = "darkgreen", 
+print('summary of 16S and gyrb ASVs observed')
+HR_16S_gyrb %>% group_by(cat) %>% summarise(sum(n))
+
+HRpalette <- as.vector(recode(unique(HR_16S_gyrb$HR_type), HR_wild_gorilla = "darkgreen", 
                                HR_wild_chimp = "darkorange2",
                                HR_wild_bonobo = "red2", 
                                HR_human = "dodgerblue",
                                MX_human_wild_apes = "maroon",
                                MX_wild_apes = "goldenrod", 
-                               Unique_CP='purple')))
+                               Unique_CP='purple'))
 plot_HR_16S_gyrb <- ggplot(HR_16S_gyrb, aes(fill=HR_type, y=n, x=cat)) + 
   geom_bar(position="fill", stat="identity") +
   scale_fill_manual(values=HRpalette) + 
@@ -36,24 +39,31 @@ plot_HR_16S_gyrb <- ggplot(HR_16S_gyrb, aes(fill=HR_type, y=n, x=cat)) +
   theme(axis.title.x=element_blank()) 
 ggsave(plot_HR_16S_gyrb,file='results/gyrb/analyses/figures/FigureS9_HR_16S_gyrb.pdf')
 
-#stats
-HR_16S_gyrb %>% group_by(cat) %>% summarise(sum(n))
-
 #FIGURE 4
-INDIR <- 'results/gyrb/analyses'
-tree_file <-  file.path(INDIR,'intermediate_outputs/HRclades_wholetree.tre')
-clades_table <- file.path(INDIR,'intermediate_outputs/HRclades_wholetree_table.txt')
+tree_file <-  file.path('results/gyrb/analyses/intermediate_outputs/HRclades_wholetree.tre')
+clades_table <- file.path('results/gyrb/analyses/intermediate_outputs/HRclades_wholetree_table.txt')
 
 #read in clades data
 clades <- data.frame(read.table(clades_table,sep='\t',header=TRUE))
-print(c('column 1',table(clades$heatmap_col1)))
-print(c('column 2',table(clades$heatmap_col2)))
+
+print('Summary of host restricted gyrB clades')
+print('gyrB ASVs distributed among host-restricted, mixed host, and unique to captive clades')
+(clades %>% group_by(HR_cat) %>% summarise(sum(ASVsNum)))
+print('clades across all samples')
+(c1_summary <- clades %>% filter(heatmap_col1 !='Blank') %>% group_by(heatmap_col1) %>% tally())
+print(c(sum(c1_summary$n),'total clades'))
+print('clades present in 25% of individuals of any host species in captivity or wild')
+(c2_summary <- clades %>% filter(heatmap_col2 !='Blank') %>% group_by(heatmap_col2) %>% tally())
+print(c(sum(c2_summary$n),'total clades'))
+print('clades present in 25% of individuals of any host species in captivity')
+(c3_summary <- clades %>% filter(heatmap_col3 !='Blank') %>% group_by(heatmap_col3) %>% tally())
+print(c(sum(c3_summary$n),'total clades'))
 
 #subset to clades that are observed in threshold cutoff of the individuals with one captive ape species
 threshold <- .25
 captive_clades <- clades %>%
-    filter(captive_chimp>threshold|captive_gorilla>threshold|captive_orangutan>threshold|captive_bonobo>threshold)
-print(c(nrow(captive_clades),'clades'))
+    filter(heatmap_col3 !='Blank')
+
 #reformat 
 captive_clades_long <- captive_clades %>% 
   select(cladeName,wild_gorilla,wild_chimp,wild_bonobo,industrialized_human,non_industrialized_human,captive_chimp,captive_gorilla,captive_orangutan,captive_bonobo) %>%
@@ -92,7 +102,7 @@ clades_heatmap <- clades %>%
 
 (tree_heatmap <-gheatmap(tree_plot, clades_heatmap, offset = .01, width=0.5) + 
   scale_fill_manual(values=c("white","dodgerblue3","red2","darkorange2","darkgreen","chocolate4","purple")))
-ggsave(tree_heatmap,filename=file.path(INDIR,'figures/Figure4_tree_plot.pdf'),width=5,height=10)
+ggsave(tree_heatmap,filename = 'results/gyrb/analyses/figures/Figure4_tree_plot.pdf',width=5,height=10)
 
 
 #Dotplots
@@ -157,20 +167,20 @@ dotplot
 
 #put all the dotplots together
 all_dotplots <- plot_grid(HR_type_dotplot,taxonomy_dotplot,dotplot,nrow = 1)
-ggsave(all_dotplots,filename=file.path(INDIR,'figures/Figure4_all_dotplots.pdf'),height=10,width=18)
+ggsave(all_dotplots,filename = 'results/gyrb/analyses/figures/Figure4_all_dotplots.pdf',height=10,width=18)
 
 #SUBTREE FIGURE 5, S10 - sub
-run_subtree_visualize <- function(INDIR,OUTDIR) {
-  full_tree <- read.tree(file.path(INDIR,'physeq_Bacteroidales_ASVs_ref.tree'))
-  Bt2_inset_tree <- read.tree(file.path(INDIR,'moeller_codiv_lin_Bt2.tree'))
-  Bt3_inset_tree <- read.tree(file.path(INDIR,'moeller_codiv_lin_Bt3.tree'))
-  inset_table <- read.table(file.path(INDIR,"moeller_codiv_HRclades.txt"),sep='\t',header=TRUE)
+
+full_tree <- read.tree(file.path('results/gyrb/inputs/physeq_Bacteroidales_ASVs_ref.tree'))
+Bt2_inset_tree <- read.tree(file.path('results/gyrb/inputs/moeller_codiv_lin_Bt2.tree'))
+Bt3_inset_tree <- read.tree(file.path('results/gyrb/inputs/moeller_codiv_lin_Bt3.tree'))
+inset_table <- read.table(file.path('results/gyrb/inputs/moeller_codiv_HRclades.txt'),sep='\t',header=TRUE)
+ASV_table <- read.table(file.path('results/gyrb/analyses/intermediate_outputs/HRclades_subtrees_table.txt'),sep='\t',header=TRUE)
+
+print('distribution of ASVs in clades')
+
   
-  ASV_table <- read.table(file.path(OUTDIR,'intermediate_outputs/HRclades_subtrees_table.txt'),sep='\t',header=TRUE)
-  print('distribution of ASVs in clades')
-  print(table(ASV_table$HR_cat))
-  
-  extract_subtree <- function(tree,Bt_lin) {
+extract_subtree <- function(tree,Bt_lin) {
     #Subset tree and codivASVs to Bt lineage
     lin_table <- ASV_table %>% filter(lineage == Bt_lin)
     lin_ASVs = as.vector(lin_table$ASV)
@@ -179,10 +189,10 @@ run_subtree_visualize <- function(INDIR,OUTDIR) {
     return(subtree)
   }
   
-  Bt1_tree <- extract_subtree(full_tree,'Bt1')
-  ggtree(Bt1_tree) + geom_nodepoint(aes(subset = label > .50))
+Bt1_tree <- extract_subtree(full_tree,'Bt1')
+ggtree(Bt1_tree) + geom_nodepoint(aes(subset = label > .50))
   
-  add_HRclades_to_tree <- function(lineage_tree,table){
+add_HRclades_to_tree <- function(lineage_tree,table){
     #label HR clades in subtree
     (taxa<-lineage_tree$tip.label) 
     (lineage_table <- table %>% 
@@ -210,65 +220,65 @@ run_subtree_visualize <- function(INDIR,OUTDIR) {
     return(c(tree_cls,color_vec))
   }
   
-  Bt1_res <- add_HRclades_to_tree(Bt1_tree,ASV_table)
-  Bt1_tree_cls <- Bt1_res[[1]]
-  Bt1_color_vec <- Bt1_res[[2]]
+Bt1_res <- add_HRclades_to_tree(Bt1_tree,ASV_table)
+Bt1_tree_cls <- Bt1_res[[1]]
+Bt1_color_vec <- Bt1_res[[2]]
   
-  ggtree(Bt1_tree_cls, aes(color=group)) +
+ggtree(Bt1_tree_cls, aes(color=group)) +
     scale_color_manual(values=Bt1_color_vec)
   
-  #moeller clade labels
-  unique(ASV_table$codiv_clade)
+#moeller clade labels
+unique(ASV_table$codiv_clade)
   
-  get_codiv_table <- function(tree,clade){
+get_codiv_table <- function(tree,clade){
     clade_ASVs <- ASV_table %>% filter(codiv_clade == clade)
     clade_node<- findMRCA(tree,as.vector(clade_ASVs$ASV))
     return(clade_node)
   }
   
-  Bt1_gorilla_node <- get_codiv_table(Bt1_tree,"Bt1_clade1_gorilla")
-  Bt1_chimp_node <- get_codiv_table(Bt1_tree,"Bt1_clade1_chimp")
-  Bt1_bonobo_node <- get_codiv_table(Bt1_tree,"Bt1_clade1_bonobo")
+Bt1_gorilla_node <- get_codiv_table(Bt1_tree,"Bt1_clade1_gorilla")
+Bt1_chimp_node <- get_codiv_table(Bt1_tree,"Bt1_clade1_chimp")
+Bt1_bonobo_node <- get_codiv_table(Bt1_tree,"Bt1_clade1_bonobo")
   
-  ggtree(Bt1_tree_cls, aes(color=group)) +
+ggtree(Bt1_tree_cls, aes(color=group)) +
     scale_color_manual(values=Bt1_color_vec) +
     geom_nodepoint(aes(subset = label > .50)) +
     geom_cladelabel(node=Bt1_gorilla_node,label='Bt1_gorilla',color='green4') + 
     geom_cladelabel(node=Bt1_chimp_node,label='Bt1_chimp',color='orange') + 
     geom_cladelabel(node=Bt1_bonobo_node,label='Bt1_bonobo',color='red') 
   
-  #no captive ape ASVs in Bt1 lineage
-  ASV_table %>% 
+#no captive ape ASVs in Bt1 lineage
+ASV_table %>% 
     filter(ASV %in% Bt1_tree$tip.label) %>%
     filter(captive_all>0)
   
-  #Subset tree and codivASVs to Bt2 lineage
-  Bt2_tree <- extract_subtree(full_tree,'Bt2')
-  Bt2_res <- add_HRclades_to_tree(Bt2_tree,ASV_table)
-  Bt2_tree_cls <- Bt2_res[[1]]
-  Bt2_color_vec <- Bt2_res[[2]]
-  Bt2_clade1_gorilla_node <- get_codiv_table(Bt2_tree,"Bt2_clade1_gorilla")
-  Bt2_clade1_chimp_node <- get_codiv_table(Bt2_tree,"Bt2_clade1_chimp")
-  Bt2_clade1_bonobo_node <- get_codiv_table(Bt2_tree,"Bt2_clade1_bonobo")
-  Bt2_clade2_chimp_node <- get_codiv_table(Bt2_tree,"Bt2_clade2_chimp")
-  Bt2_clade2_bonobo_node <- get_codiv_table(Bt2_tree,"Bt2_clade2_bonobo")
-  #Bt2 ASVs in captive apes 
-  ASV_table %>% 
+#Subset tree and codivASVs to Bt2 lineage
+Bt2_tree <- extract_subtree(full_tree,'Bt2')
+Bt2_res <- add_HRclades_to_tree(Bt2_tree,ASV_table)
+Bt2_tree_cls <- Bt2_res[[1]]
+Bt2_color_vec <- Bt2_res[[2]]
+Bt2_clade1_gorilla_node <- get_codiv_table(Bt2_tree,"Bt2_clade1_gorilla")
+Bt2_clade1_chimp_node <- get_codiv_table(Bt2_tree,"Bt2_clade1_chimp")
+Bt2_clade1_bonobo_node <- get_codiv_table(Bt2_tree,"Bt2_clade1_bonobo")
+Bt2_clade2_chimp_node <- get_codiv_table(Bt2_tree,"Bt2_clade2_chimp")
+Bt2_clade2_bonobo_node <- get_codiv_table(Bt2_tree,"Bt2_clade2_bonobo")
+#Bt2 ASVs in captive apes 
+ASV_table %>% 
     filter(ASV %in% Bt2_tree$tip.label) %>%
     select(ASV,captive_chimp_HOUZ:captive_chimp_PC) %>%
     gather(key = "host_cat", value="sample_count",-ASV) %>%
     filter(sample_count>0)
-  #Bt2 ASVs by HR_type 
-  ASV_table %>% 
+#Bt2 ASVs by HR_type 
+ASV_table %>% 
     filter(ASV %in% Bt2_tree$tip.label) %>%
     group_by(HR_type) %>%
     tally()
-  ASV_table %>% 
+ASV_table %>% 
     filter(ASV %in% Bt2_tree$tip.label) %>%
     group_by(ASV_HR_type) %>%
     tally()
   
-  (Bt2_tree_fig <- ggtree(Bt2_tree_cls, aes(color=group)) + xlim(NA, .5) +
+(Bt2_tree_fig <- ggtree(Bt2_tree_cls, aes(color=group)) + xlim(NA, .5) +
       scale_color_manual(values=Bt2_color_vec) + #HR clades
       geom_treescale(x=0,y=0) +
       geom_nodepoint(aes(subset = label > .50),size=.75) + #bootstrap
@@ -305,37 +315,37 @@ run_subtree_visualize <- function(INDIR,OUTDIR) {
         label=label), size=1,color='magenta',shape=15) + 
       theme(legend.position = "none"))
   
-  ggsave(Bt2_tree_fig,filename = file.path(OUTDIR,'figures/Figure5_Bt2_tree.pdf'),width=5)
+ggsave(Bt2_tree_fig,filename = file.path('results/gyrb/analyses/figures/Figure5_Bt2_tree.pdf'),width=5)
   
   
-  #Subset tree and codivASVs to Bt3 lineage
-  Bt3_tree <- extract_subtree(full_tree,'Bt3')
-  Bt3_res <- add_HRclades_to_tree(Bt3_tree,ASV_table)
-  Bt3_tree_cls <- Bt3_res[[1]]
-  Bt3_color_vec <- Bt3_res[[2]]
-  Bt3_clade1_human_node <- get_codiv_table(Bt3_tree,"Bt3_clade1_human")
-  Bt3_clade1_chimp_node <- get_codiv_table(Bt3_tree,"Bt3_clade1_chimp")
-  Bt3_clade1_bonobo_node <- get_codiv_table(Bt3_tree,"Bt3_clade1_bonobo")
+#Subset tree and codivASVs to Bt3 lineage
+Bt3_tree <- extract_subtree(full_tree,'Bt3')
+Bt3_res <- add_HRclades_to_tree(Bt3_tree,ASV_table)
+Bt3_tree_cls <- Bt3_res[[1]]
+Bt3_color_vec <- Bt3_res[[2]]
+Bt3_clade1_human_node <- get_codiv_table(Bt3_tree,"Bt3_clade1_human")
+Bt3_clade1_chimp_node <- get_codiv_table(Bt3_tree,"Bt3_clade1_chimp")
+Bt3_clade1_bonobo_node <- get_codiv_table(Bt3_tree,"Bt3_clade1_bonobo")
   
-  #Bt3 ASVs in captive apes 
-  ASV_table %>% 
+#Bt3 ASVs in captive apes 
+ASV_table %>% 
     filter(ASV %in% Bt3_tree$tip.label) %>%
     select(ASV,captive_chimp_HOUZ:captive_chimp_PC) %>%
     gather(key = "host_cat", value="sample_count",-ASV) %>%
     filter(sample_count>0) %>% 
     group_by(host_cat) %>% 
     tally()
-  #Bt3 ASVs by HR_type 
-  ASV_table %>% 
+#Bt3 ASVs by HR_type 
+ASV_table %>% 
     filter(ASV %in% Bt3_tree$tip.label) %>%
     group_by(HR_type) %>%
     tally()
-  ASV_table %>% 
+ASV_table %>% 
     filter(ASV %in% Bt3_tree$tip.label) %>%
     group_by(ASV_HR_type) %>%
     tally()
   
-  (Bt3_tree_fig <- ggtree(Bt3_tree_cls, aes(color=group)) + xlim(NA, .8) +
+(Bt3_tree_fig <- ggtree(Bt3_tree_cls, aes(color=group)) + xlim(NA, .8) +
       scale_color_manual(values=Bt3_color_vec) +
       geom_nodepoint(aes(subset = label > .50),size=.75) + 
       geom_treescale(x=0,y=0) +
@@ -383,8 +393,6 @@ run_subtree_visualize <- function(INDIR,OUTDIR) {
         label=label), size=1,color='magenta',shape=15) + 
       theme(legend.position = "none"))
   
-  ggsave(Bt3_tree_fig,filename = file.path(OUTDIR,'figures/FigureS10_Bt3_tree.pdf'),width=7)
+ggsave(Bt3_tree_fig,filename = file.path('results/gyrb/analyses/figures/FigureS10_Bt3_tree.pdf'),width=7)
   
-}
-run_subtree_visualize('results/gyrb/inputs_old','results/gyrb/analyses')
 
