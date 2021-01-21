@@ -35,9 +35,9 @@ description_color_scale <- as.vector(recode(description_color_scale, wild_gorill
 #ORDINATION
 print('calculating beta diversity distance metrics')
 physeq16s_bray <- phyloseq::distance(physeq16s,'bray')
-#physeq16s_jaccard <- phyloseq::distance(physeq16s,'jaccard')
-#physeq16s_wunifrac <- phyloseq::distance(physeq16s,'weighted_unifrac')
-#physeq16s_uunifrac <- phyloseq::distance(physeq16s,'unweighted_unifrac')
+physeq16s_jaccard <- phyloseq::distance(physeq16s,'jaccard')
+physeq16s_wunifrac <- phyloseq::distance(physeq16s,'weighted_unifrac')
+physeq16s_uunifrac <- phyloseq::distance(physeq16s,'unweighted_unifrac')
 
 ordinate_NMDS <- function(physeq,physeq_dist){
   ord_nMDS<- metaMDS(comm= physeq_dist,
@@ -66,15 +66,15 @@ ordinate_NMDS <- function(physeq,physeq_dist){
 print('NMDS ordinations')
 capture.output(plot_nmds_bray <- ordinate_NMDS(physeq16s,physeq16s_bray),file='nul') #Figure1
 ggsave(plot_nmds_bray, file = file.path(figure_outdir,'Fig1_nMDS_bray.pdf'),width=6,height=5)
-#capture.output(plot_nmds_jaccard <- ordinate_NMDS(physeq16s,physeq16s_jaccard),file='nul')
-#capture.output(plot_nmds_wunifrac <- ordinate_NMDS(physeq16s,physeq16s_wunifrac),file='nul')
-#capture.output(plot_nmds_uunifrac <- ordinate_NMDS(physeq16s,physeq16s_uunifrac),file='nul')
-#plot_nmds_othermetrics <- plot_grid(plot_nmds_jaccard,
-#                                    plot_nmds_wunifrac,
-#                                    plot_nmds_uunifrac,
-#                                    ncol=1,
-#                                    labels = "AUTO")
-#ggsave(plot_nmds_othermetrics, file = file.path(figure_outdir,'FigS2_nMDS_othermetrics.pdf'),width=6,height=14)
+capture.output(plot_nmds_jaccard <- ordinate_NMDS(physeq16s,physeq16s_jaccard),file='nul')
+capture.output(plot_nmds_wunifrac <- ordinate_NMDS(physeq16s,physeq16s_wunifrac),file='nul')
+capture.output(plot_nmds_uunifrac <- ordinate_NMDS(physeq16s,physeq16s_uunifrac),file='nul')
+plot_nmds_othermetrics <- plot_grid(plot_nmds_jaccard,
+                                    plot_nmds_wunifrac,
+                                    plot_nmds_uunifrac,
+                                    ncol=1,
+                                    labels = "AUTO")
+ggsave(plot_nmds_othermetrics, file = file.path(figure_outdir,'FigS2_nMDS_othermetrics.pdf'),width=6,height=14)
 
 #BETADISPER and PERMANOVA - Description all groups
 run_betadisper_permanova_dist <- function(physeq,physeq_dist){
@@ -100,11 +100,11 @@ print('BETADISPER and PERMANOVA')
 print('bray-curtis')
 (beta_perm_bray <- run_betadisper_permanova_dist(physeq16s,physeq16s_bray))
 print('jaccard')
-#(beta_perm_jaccard <- run_betadisper_permanova_dist(physeq16s,physeq16s_jaccard))
+(beta_perm_jaccard <- run_betadisper_permanova_dist(physeq16s,physeq16s_jaccard))
 print('weighted unifrac')
-#(beta_perm_wunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_wunifrac))
+(beta_perm_wunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_wunifrac))
 print('unweighted unifrac')
-#(beta_perm_uunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_uunifrac))
+(beta_perm_uunifrac <- run_betadisper_permanova_dist(physeq16s,physeq16s_uunifrac))
 
 #PAIRWISE BETADISPER and PERMANOVA
 #extract physeq for each of the pairwise group comparisons
