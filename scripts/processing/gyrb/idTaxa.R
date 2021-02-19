@@ -1,6 +1,4 @@
-library(DECIPHER)
-library(tidyverse)
-library(zoo)
+
 
 assign_taxonomy_w_idTAXA <- function(asvs_faa,db_faa){
   #read in ref db faa
@@ -37,11 +35,3 @@ assign_taxonomy_w_idTAXA <- function(asvs_faa,db_faa){
   tax_table_filled <- data.frame(t(apply(tax_table_sep, 1, zoo::na.locf)))
   return(tax_table_filled)
 }
-
-
-
-#setwd('/Volumes/AHN/captive_ape_microbiome')
-#outpath='results/gyrb/processing/gyrb_amp_datasets/'
-#gtdbtk_gyrb_faa = 'results/gyrb/processing/Bacteroidetes_GTDBTK_ref/gyrb_fastas/gtdbtk_gyrb.faa'
-#tax_table <- assign_taxonomy_w_idTAXA(asvs_faa = file.path(outpath,"ASVs_filtered.faa"),gtdbtk_gyrb_faa)
-

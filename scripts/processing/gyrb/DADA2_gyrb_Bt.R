@@ -1,5 +1,4 @@
 library('dada2'); packageVersion("dada2");
-library(Rcpp)
 library(phyloseq)
 library(tidyverse)
 setwd('/Volumes/AHN/captive_ape_microbiome')

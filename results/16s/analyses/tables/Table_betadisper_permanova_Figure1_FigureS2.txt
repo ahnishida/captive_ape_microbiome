@@ -1,0 +1,5 @@
+dist_metric	Df	betadisper_F	betadisper_Pr..F.	permanova_F.Model	permanova_R2	permanova_Pr..F.
+bray-curtis	8	44	0.001	47.9	0.35	0.001
+jaccard	8	50	0.001	25.9	0.22	0.001
+weighted unifrac	8	23.2	0.001	68.2	0.43	0.001
+unweighted unifrac	8	81.8	0.001	102.6	0.53	0.001

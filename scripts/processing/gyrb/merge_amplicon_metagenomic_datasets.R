@@ -5,7 +5,9 @@ library(tidyverse)
 library(phytools)
 library(seqinr)
 library(stringr)
-#library("genefilter")
+library("genefilter")
+library(zoo)
+
 setwd('/Volumes/AHN/captive_ape_microbiome')
 
 # this merges amplicon datasets and filters out reads that aren;t assign. 

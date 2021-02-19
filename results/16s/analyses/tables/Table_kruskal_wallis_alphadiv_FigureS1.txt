@@ -1,0 +1,6 @@
+TaxName	group1	group2	group1_n	group2_n	group1_mean	group2_mean	df	statistic	p	p_adj_bonferroni
+All Phyla	captive ape	wild ape	77	377	207.4545	207.6631	1	0.4	0.542	1
+Actinobacteria	captive ape	wild ape	77	377	1.4156	19.8939	1	192.4	0	0
+Bacteroidetes	captive ape	wild ape	77	377	41.2727	36.9151	1	14.5	1e-04	7e-04
+Firmicutes	captive ape	wild ape	77	377	126.3506	108.7878	1	17.9	0	1e-04
+Proteobacteria	captive ape	wild ape	77	377	8.6883	16.6897	1	1.5	0.215	1

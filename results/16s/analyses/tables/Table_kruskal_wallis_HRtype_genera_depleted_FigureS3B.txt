@@ -1,0 +1,9 @@
+HR_type	group1	group2	group1_n	group2_n	group1_mean	group2_mean	df	statistic	p	p_adj_bonferroni
+HR_human	captive_ape	human	77	274	0.0085	0.0109	1	12.3	0	0.004
+HR_wild_gorilla	captive_ape	wild_gorilla	77	176	0	0.0457	1	163	0	0
+HR_wild_chimp	captive_ape	wild_chimp	77	132	0	0.056	1	148.9	0	0
+HR_wild_bonobo	captive_ape	wild_bonobo	77	69	0	0.0286	1	127.1	0	0
+MX_wild_apes	captive_ape	wild_ape	77	377	0.0031	0.1629	1	185.9	0	0
+MX_human_wild_apes	captive_ape	wild_ape	77	377	8e-04	0.1144	1	181.9	0	0
+MX_human_wild_apes	captive_ape	human	77	274	8e-04	0.0145	1	51.1	0	0
+MX_human_wild_apes	human	wild_ape	274	377	0.0145	0.1144	1	241	0	0

@@ -5,6 +5,8 @@ library(phyloseq)
 library(seqinr)
 library(ape)
 library(phytools)
+print(sessionInfo())
+
 
 setwd('/Volumes/AHN/captive_ape_microbiome/results/16s')
 

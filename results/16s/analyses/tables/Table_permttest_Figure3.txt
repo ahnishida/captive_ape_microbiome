@@ -1,0 +1,7 @@
+group1	group2	group1_n	group2_n	group1_mean	group2_mean	statistic	p.value	p_adj_bonferroni
+diff_species_diff_site	diff_species_same_site	1815	334	0.7205	0.6629	16.3	0.002	0.012
+diff_species_diff_site	same_species_diff_site	1815	438	0.7205	0.7151	2.2	0.02	0.12
+diff_species_diff_site	same_species_same_site	1815	339	0.7205	0.537	51.9	0.002	0.012
+diff_species_same_site	same_species_diff_site	334	438	0.6629	0.7151	-9.5	0.002	0.012
+diff_species_same_site	same_species_same_site	334	339	0.6629	0.537	15.9	0.002	0.012
+same_species_diff_site	same_species_same_site	438	339	0.7151	0.537	32.4	0.002	0.012
