@@ -27,6 +27,7 @@ Analyses scripts utilize files in the gyrb and 16s inputs folders to generate al
 
 ### To reproduce all figures and statistics reported in the manuscript 
 [30 minutes from install to analysis completion]
+
 Check the dependencies.md file to obtain python modules and R libraries necessary for running analyses scripts
 
 ##### commands
