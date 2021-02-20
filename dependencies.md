@@ -34,17 +34,19 @@ cutadapt(v2.5)
 DADA2(v1.16.0), phyloseq(v1.32.0), tidyverse(v1.3.0), 
 
 ##### merge_DADA_to_Phyloseq_V4.R
-Rpackages: DADA2(v1.16.0), phyloseq(v1.32.0), genefilter(v1.70.0), tidyverse(v1.3.0)
-seqinr(v3.6-1), ape(v5.4-1), phytools(v0.7-70)
+Rpackages: DADA2(v1.16.0), phyloseq(v1.32.0), genefilter(v1.70.0), tidyverse(v1.3.0), seqinr(v3.6-1), ape(v5.4-1), phytools(v0.7-70)
+
 programs: FastTree(v2.1.9), mafft(v7.309)
 
 #### gyrb_processing
 ##### create_Bacteroidetes_GTDBTK_ref.ipynb: 
 programs=prodigal(v2.6.3),hmmer(v3.3),transeq from EMBOSS(v6.6.0.0),BLAST(v2.9.0)
+
 python packages: Biopython(v1.77)
 
 ##### moeller_sup_codiv_clades.ipynb
-python packages: Biopython(v1.77), ete3(v3.1.1),
+python packages: Biopython(v1.77), ete3(v3.1.1)
+
 programs: transeq and transalign from EMBOSS(v6.6.0.0),cutadapt(v2.5), FastTree(v2.1.9), mafft(v7.309)
 
 ##### gyrb_cutadapt.sh
@@ -58,7 +60,9 @@ Biopython(v1.77), BLAST(v2.9.0)
 
 ##### merge_amplicon_metagenomic_datasets.R
 Rpackages: DADA2(v1.16.0), phyloseq(v1.32.0), tidyverse(v1.3.0), DECIPHER(v2.16.1),genefilter(v1.70.0) ,seqinr(v3.6-1), phytools(v0.7-70), stringr(v1.4.0), zoo(v1.8-8) 
+
 programs: BLAST(v2.9.0), FastTree(v2.1.9)
+
 scripts: blastp_filter_ASVs.sh, idTaxa.R
 
 
