@@ -2,7 +2,7 @@
 ### Authors: Alex H. Nishida & Howard Ochman
 
 
-#### This manuscript is currently is preparation.
+#### This manuscript is currently is under-consideration.
 
 #### About this repository
 This repository contains scripts for processing raw fastq data as well as scripts for analyzing data to generate figures and tables for the manuscript.
@@ -14,35 +14,17 @@ The original Fastq files were submitted to the NCBI sequence read archive under 
 Published fastq metadata are listed in Table S1
 
 #### File structure
-This study analyzes two seperate datasets - 16S and gyrb amplicon datasets.
+###### This study analyzes two seperate datasets - 16S and gyrb amplicon datasets.
 
-##### Required programs and dependencies to process 16S amplicon data
+###### Scripts are divided into two folders processing and analyses
+###### Processing scripts convert raw fastq to ASV table with associated taxonomy, metadata and phylogeny
+###### Analyses scripts use ASV table with associated taxonomy, metadata and phylogeny in the inputs folder to generate all figures and run all statistical tests
+###### 
+###### Dependencies can be found in the dependencies.md file
 
-###### V4_demultiplex.sh: demultiplex(v1.0.1), repair.sh from bbmap (v38.70), barcode-splitter(v0.18.6)
-###### V4_cutadapt.sh: cutadapt(v2.5)
-###### DADA2_V4.R, DADA2_single.R, DADA2_paired.R: DADA2(v1.16.0), phyloseq(v1.32.0), tidyverse(v1.3.0)
-###### merge_DADA_to_Phyloseq_V4.R
-Rpackages: DADA2(v1.16.0), phyloseq(v1.32.0), genefilter(v1.70.0), tidyverse(v1.3.0)
-seqinr(v3.6-1), ape(v5.4-1), phytools(v0.7-70)
-Programs: FastTree(v2.1.9), mafft(v7.309)
-
-##### Required programs and dependencies to process gyrB amplicon data
-The gyrb dataset uses all of the programs listed above plus some additional programs to assign taxonomy
-
-###### create_Bacteroidetes_GTDBTK_ref.ipynb: 
-jupyter notebook
-python packages: Biopython(v1.77)
-programs=prodigal(v2.6.3),hmmer(v3.3)
-
-###### moeller_sup_codiv_clades.ipynb: python packages:Biopython(v1.77),ete3(v3.1.1)
-###### gyrb_cutadapt.sh: cutadapt(v2.5)
-###### DADA2_gyrb_Bt.R, DADA2_single.R: DADA2(v1.16.0), phyloseq(v1.32.0), tidyverse(v1.3.0)
-
-###### filter_gyrb_seqs_from_metagenomic_samples.ipynb
-###### generate_metadata_for_metagenomic_samples.ipynb
-###### scripts/processing/gyrb/merge_amplicon_metagenomic_datasets.R
-###### idTaxa.R
-###### blastp_filter_ASVs.sh 
-
-##### Required programs and dependencies used by scripts in the analyses folder:
--Uses data in the inputs folder to perform all analyses, generatefigures and tables
+###### To reproduce all figures and statistics reported in the manuscript
+1) Check the dependencies.md file to obtain python modules and R libraries necessary for running analyses scripts
+2) git clone https://github.com/ahnishida/captive_ape_microbiome.git
+3) gunzip results/gyrb/inputs/physeq_Bacteroidales_asv_tab.txt.gz
+4) Edit working directory in these scripts: 16S_analyses_all.R /path/to/captive_ape_microbiome
+5)  

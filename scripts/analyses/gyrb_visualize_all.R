@@ -5,8 +5,6 @@ library(phytools)
 library(cowplot)
 library(ggplot2)
 
-setwd('/Volumes/AHN/captive_ape_microbiome') #SET WORKING DIR
-
 #summarize 16S and gyrB ASV distrbutions
 HR_16S <- read.table('results/16s/analyses/tables/16S_ASVs_summary.txt',sep='\t',header=T)
 HR_16S <- HR_16S %>% filter(Order == 'Bacteroidales') 
