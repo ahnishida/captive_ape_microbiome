@@ -4,6 +4,7 @@ library(tidyverse)
 library(phytools)
 library(cowplot)
 library(ggplot2)
+set.seed(3113)
 
 #summarize 16S and gyrB ASV distrbutions
 HR_16S <- read.table('results/16s/analyses/tables/16S_ASVs_summary.txt',sep='\t',header=T)
@@ -35,9 +36,9 @@ plot_HR_16S_gyrb <- ggplot(HR_16S_gyrb, aes(fill=HR_type, y=n, x=cat)) +
   theme_cowplot() +  
   theme(axis.text.x = element_text(angle = 90,hjust=1))+
   theme(axis.title.x=element_blank()) 
-ggsave(plot_HR_16S_gyrb,file='results/gyrb/analyses/figures/FigureS9_HR_16S_gyrb.pdf')
+ggsave(plot_HR_16S_gyrb,file='results/gyrb/analyses/figures/FigureS2_HR_16S_gyrb.pdf')
 
-#FIGURE 4
+#FIGURE 1
 tree_file <-  file.path('results/gyrb/analyses/intermediate_outputs/HRclades_wholetree.tre')
 clades_table <- file.path('results/gyrb/analyses/intermediate_outputs/HRclades_wholetree_table.txt')
 
@@ -100,7 +101,7 @@ clades_heatmap <- clades %>%
 
 (tree_heatmap <-gheatmap(tree_plot, clades_heatmap, offset = .01, width=0.5) + 
   scale_fill_manual(values=c("white","dodgerblue3","red2","darkorange2","darkgreen","chocolate4","purple")))
-ggsave(tree_heatmap,filename = 'results/gyrb/analyses/figures/Figure4_tree_plot.pdf',width=5,height=10)
+ggsave(tree_heatmap,filename = 'results/gyrb/analyses/figures/Figure1_tree_plot.pdf',width=5,height=10)
 
 
 #Dotplots
@@ -165,9 +166,9 @@ dotplot
 
 #put all the dotplots together
 all_dotplots <- plot_grid(HR_type_dotplot,taxonomy_dotplot,dotplot,nrow = 1)
-ggsave(all_dotplots,filename = 'results/gyrb/analyses/figures/Figure4_all_dotplots.pdf',height=10,width=18)
+ggsave(all_dotplots,filename = 'results/gyrb/analyses/figures/Figure1_all_dotplots.pdf',height=10,width=18)
 
-#SUBTREE FIGURE 5, S10 - sub
+#SUBTREE FIGURE 1, S1 - sub
 
 full_tree <- read.tree(file.path('results/gyrb/inputs/physeq_Bacteroidales_ASVs_ref.tree'))
 Bt2_inset_tree <- read.tree(file.path('results/gyrb/inputs/moeller_codiv_lin_Bt2.tree'))
@@ -313,7 +314,7 @@ ASV_table %>%
         label=label), size=1,color='magenta',shape=15) + 
       theme(legend.position = "none"))
   
-ggsave(Bt2_tree_fig,filename = file.path('results/gyrb/analyses/figures/Figure5_Bt2_tree.pdf'),width=5)
+ggsave(Bt2_tree_fig,filename = file.path('results/gyrb/analyses/figures/Figure2_Bt2_tree.pdf'),width=5)
   
   
 #Subset tree and codivASVs to Bt3 lineage
@@ -391,7 +392,7 @@ ASV_table %>%
         label=label), size=1,color='magenta',shape=15) + 
       theme(legend.position = "none"))
   
-ggsave(Bt3_tree_fig,filename = file.path('results/gyrb/analyses/figures/FigureS10_Bt3_tree.pdf'),width=7)
+ggsave(Bt3_tree_fig,filename = file.path('results/gyrb/analyses/figures/FigureS1_Bt3_tree.pdf'),width=7)
   
 ##Co-diversification test on Bt2 lineage
 ##Host distance matrix
@@ -402,6 +403,12 @@ bonobo = c(6.4,2.396,0,8.60)
 gorilla = c(8.60,8.60,8.60,0)
 host.D = rbind(human,chimp,bonobo,gorilla)
 colnames(host.D) = c('human','chimp','bonobo','gorilla')
+
+
+Random.host.D <- host.D
+#sample(c('human','chimp','bonobo','gorilla'))
+colnames(Random.host.D) = c("gorilla","human","chimp","bonobo")
+rownames(Random.host.D) = c("gorilla","human","chimp","bonobo")
 
 #bacterial distance matrix
 Bt2.D = cophenetic(Bt2_tree)
@@ -417,12 +424,10 @@ Host_Bt2 = HR_gyrb %>% select(ASV,HR_sampleTypes) %>%
   column_to_rownames(var="ASV") %>%
   t()
 
-N.perm = 999
+N.perm = 9
 ############ HOMMOLA ET AL. ###############
 (P.hommola <- suppressWarnings(sim_cosp(host.D, Bt2.D, t(Host_Bt2),N.perm)))
 #random tree
-RandomHostTree <- rtree(n= 4, rooted=TRUE, tip.label=NULL, br = runif)	
-Random.host.D <- cophenetic(RandomHostTree)
 (Random.P.hommola <- suppressWarnings(sim_cosp(Random.host.D, Bt2.D, t(Host_Bt2),N.perm)))
 
 ############ PARAFIT ######################
