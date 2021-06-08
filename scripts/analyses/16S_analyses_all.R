@@ -9,7 +9,7 @@ library("RVAideMemoire")
 library("RColorBrewer")
 library('rstatix')
 library('broom')
-
+set.seed(3113)
 #INPUTS
 physeq16s <- readRDS('results/16s/inputs/phyloseq_rare10000.rds') #read in physeq
 HR_table <- read.table('results/16s/analyses/tables/16S_ASVs_summary.txt',sep='\t',header=T)
@@ -77,8 +77,8 @@ ordinate_NMDS <- function(physeq,physeq_dist){
 }
 
 print('NMDS ordinations')
-capture.output(plot_nmds_bray <- ordinate_NMDS(physeq16s,physeq16s_bray),file='nul') #Figure1
-ggsave(plot_nmds_bray, file = file.path(figure_outdir,'Fig1_nMDS_bray.pdf'),width=6,height=5)
+capture.output(plot_nmds_bray <- ordinate_NMDS(physeq16s,physeq16s_bray),file='nul') 
+ggsave(plot_nmds_bray, file = file.path(figure_outdir,'Fig5_nMDS_bray.pdf'),width=6,height=5)
 capture.output(plot_nmds_jaccard <- ordinate_NMDS(physeq16s,physeq16s_jaccard),file='nul')
 capture.output(plot_nmds_wunifrac <- ordinate_NMDS(physeq16s,physeq16s_wunifrac),file='nul')
 capture.output(plot_nmds_uunifrac <- ordinate_NMDS(physeq16s,physeq16s_uunifrac),file='nul')
@@ -87,7 +87,7 @@ plot_nmds_othermetrics <- plot_grid(plot_nmds_jaccard,
                                     plot_nmds_uunifrac,
                                     ncol=1,
                                     labels = "AUTO")
-ggsave(plot_nmds_othermetrics, file = file.path(figure_outdir,'FigS2_nMDS_othermetrics.pdf'),width=6,height=14)
+ggsave(plot_nmds_othermetrics, file = file.path(figure_outdir,'FigS8_nMDS_othermetrics.pdf'),width=6,height=14)
 
 #BETADISPER and PERMANOVA - Description all groups
 run_betadisper_permanova_dist <- function(physeq,physeq_dist,dist_metric){
@@ -128,7 +128,7 @@ permanova_beta_tab <- data.frame(rbind(beta_perm_bray,beta_perm_jaccard,beta_per
 permanova_beta_tab <- permanova_beta_tab %>% mutate(betadisper_F = round(as.numeric(betadisper_F),1),
                                                     permanova_F.Model = round(as.numeric(permanova_F.Model),1),
                                                     permanova_R2= round(as.numeric(permanova_R2),2))
-write.table(permanova_beta_tab,file=file.path(table_outdir,'Table_betadisper_permanova_Figure1_FigureS2.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+write.table(permanova_beta_tab,file=file.path(table_outdir,'Table_betadisper_permanova_Figure5_FigureS8.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
 #PAIRWISE BETADISPER and PERMANOVA
 #extract physeq for each of the pairwise group comparisons
@@ -155,7 +155,7 @@ colnames(pw_df) <- c('group1','group2','dist_metric','Df','betadisper_F','betadi
 pw_df <- pw_df %>% mutate(betadisper_F = round(as.numeric(betadisper_F),1),
                           permanova_F.Model = round(as.numeric(permanova_F.Model),1),
                           permanova_R2= round(as.numeric(permanova_R2),2))
-write.table(pw_df,file=file.path(table_outdir,'TableS4_pairwise_betadisper_permanova_Figure1.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+write.table(pw_df,file=file.path(table_outdir,'TableS4_pairwise_betadisper_permanova_Figure5.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
 #PERMANOVA captive apes host filtering
 
@@ -231,7 +231,7 @@ bonobo_conspec = conspec %>%
 
 physeq16S_melt %>% filter(OTU %in% c(gorilla_conspec$OTU,chimp_conspec$OTU)) %>% filter(captivity_status=='captive',Abundance>0) 
 
-#Figure 2A
+#Figure 3A
 (plot_phyla_abund <- physeq16s_Description_Mean %>%
   group_by(Sample,Phylum) %>% #group all ASVs within a HR_type
   summarise(Abundance = sum(Abundance)) %>% #merge ASVs to get their sum
@@ -319,7 +319,7 @@ kw_phylum_df <- kw_phylum_df %>% rename(Phylum = TaxName) %>%
                         group1 = recode(group1,'captive'='captive_ape','wild'='wild_ape'),
                         group2 = recode(group2,'captive'='captive_ape','wild'='wild_ape'))
 write.table(as.data.frame(kw_phylum_df),
-            file=file.path(table_outdir,'Table_kruskal_wallis_phyla_Figure2A.txt'),
+            file=file.path(table_outdir,'Table_kruskal_wallis_phyla_Figure3A.txt'),
             sep='\t',row.names = F,col.names=T,quote=F)
 
 #COMPOSITION BY HR_TYPE
@@ -333,7 +333,7 @@ HRpalette <- as.vector(recode(HR_type_ordered, HR_wild_gorilla = "darkgreen",
                                MX_human_wild_apes = "goldenrod",
                                MX_wild_apes = "maroon",
                                Unique_CP='purple'))
-#Figure 2B
+#Figure 3B
 (plot_phyla_abund_HR <- physeq16s_Description_Mean %>%
   group_by(Sample,HR_type) %>% #group all ASVs within a HR_type
   summarise(Abundance = sum(Abundance)) %>% #merge ASVs to get their sum
@@ -403,7 +403,7 @@ HR_type_stats <-function(physeq_melt){
   
 }
 kruskal_wallis_HR_type <- HR_type_stats(physeq16s_melt)
-write.table(kruskal_wallis_HR_type,file=file.path(table_outdir,'Table_kruskal_wallis_HRtype_Figure2B.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+write.table(kruskal_wallis_HR_type,file=file.path(table_outdir,'Table_kruskal_wallis_HRtype_Figure3B.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
 #BACTERIAL GENERA DIFF ABUNDANCE IN WILD AND CAPTIVE APES
 Genera <- unique(physeq16s_melt$Genus) #list of unique genera
@@ -434,7 +434,7 @@ Genera_enriched <- kw_Genera_df %>%
                               group_by(Genus) %>% tally() %>% filter(n==4) %>% #significant across all comparison
                               select(Genus) %>% unlist()
 kw_Genera_df_enriched <- kw_Genera_df %>% filter(Genus %in% Genera_enriched)
-write.table(as.data.frame(kw_Genera_df_enriched),file=file.path(table_outdir,'Table_kruskal_wallis_genera_enriched_Figure2C.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+write.table(as.data.frame(kw_Genera_df_enriched),file=file.path(table_outdir,'Table_kruskal_wallis_genera_enriched_Figure3C.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
 #Identify bacterial genera depleted in captive vs. wild in one comparison
 Genera_depleted <- kw_Genera_df %>% 
@@ -444,22 +444,22 @@ Genera_depleted <- kw_Genera_df %>%
   filter(comparison != 'cp_wd.kruskal') %>% #exclude comps significant b/n all captive apes and all wild apes 
   select(Genus) %>% unique() %>% unlist()
 kw_Genera_df_depleted <- kw_Genera_df %>% filter(Genus %in% Genera_depleted)
-write.table(as.data.frame(kw_Genera_df_depleted),file=file.path(table_outdir,'Table_kruskal_wallis_genera_depleted_FigureS3A.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+write.table(as.data.frame(kw_Genera_df_depleted),file=file.path(table_outdir,'Table_kruskal_wallis_genera_depleted_FigureS9A.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
 print('run HR stats on genera enriched/depleted')
 physeq16s_melt_Genera_enriched <- physeq16s_melt %>%
   filter(Genus %in% Genera_enriched)
 (kruskal_wallis_HRtype_Genera_enriched <- HR_type_stats(physeq16s_melt_Genera_enriched))
-write.table(kruskal_wallis_HRtype_Genera_enriched,file=file.path(table_outdir,'Table_kruskal_wallis_HRtype_genera_enriched_Figure2D.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+write.table(kruskal_wallis_HRtype_Genera_enriched,file=file.path(table_outdir,'Table_kruskal_wallis_HRtype_genera_enriched_Figure3D.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
 print('HR stats for genera depleted in captive apes')
 physeq16s_melt_Genera_depleted <- physeq16s_melt %>%
   filter(Genus %in% Genera_depleted)
 HR_type_stats(physeq16s_melt_Genera_depleted)
 (kruskal_wallis_HRtype_Genera_depleted <- HR_type_stats(physeq16s_melt_Genera_depleted))
-write.table(kruskal_wallis_HRtype_Genera_depleted,file=file.path(table_outdir,'Table_kruskal_wallis_HRtype_genera_depleted_FigureS3B.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+write.table(kruskal_wallis_HRtype_Genera_depleted,file=file.path(table_outdir,'Table_kruskal_wallis_HRtype_genera_depleted_FigureS9B.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
-#Figure 2C,Visualize bacterial genera enriched in captivity 
+#Figure 3C,Visualize bacterial genera enriched in captivity 
 (plot_genus_enriched_abund <- physeq16s_Description_Mean %>%
   filter(Genus %in% Genera_enriched) %>% #select only genera enriched in captive apes
   group_by(Sample,Genus) %>% #group all ASVs within an individual, keep group metadata
@@ -473,7 +473,7 @@ write.table(kruskal_wallis_HRtype_Genera_depleted,file=file.path(table_outdir,'T
   ylab("Relative abundance")  +
   scale_y_continuous(breaks = c(0.0,0.1,0.2,0.3,0.4)))
 
-#Figure2D: Visualize by HRtype
+#Figure3D: Visualize by HRtype
 (plot_genus_enriched_abund_HRtype <- physeq16s_Description_Mean %>%
   filter(Genus %in% Genera_enriched) %>% #select only genera enriched in captive apes
   group_by(Sample,HR_type) %>%  #group all ASVs within an individual, keep group metadata
@@ -487,7 +487,7 @@ write.table(kruskal_wallis_HRtype_Genera_depleted,file=file.path(table_outdir,'T
   ylab("Relative abundance") +
   scale_y_continuous(breaks = c(0.0,0.1,0.2,0.3,0.4)))
 
-#Figure S3A: Visualize bacterial genera depleted in captivity
+#Figure S9A: Visualize bacterial genera depleted in captivity
 colors = c(brewer.pal(name="Paired", n = 12),brewer.pal(name="Dark2", n = 8))
 (plot_genus_deplete_abund <- physeq16s_Description_Mean %>%
   filter(Genus %in% Genera_depleted) %>% #select Genera depleted in captive apes
@@ -502,7 +502,7 @@ colors = c(brewer.pal(name="Paired", n = 12),brewer.pal(name="Dark2", n = 8))
   ylab("Relative abundance")  +
   scale_y_continuous(breaks = c(0.0,0.1,0.2,0.3,0.4)))
 
-#Figure S3B: Visualize by HRtype
+#Figure S9B: Visualize by HRtype
 (plot_genus_deplete_abund_HRtype <- physeq16s_Description_Mean %>%
   filter(Genus %in% Genera_depleted) %>% #select Genera depleted in captive apes
   group_by(Sample,HR_type) %>% #group all ASVs within an individual, keep group metadata
@@ -516,7 +516,7 @@ colors = c(brewer.pal(name="Paired", n = 12),brewer.pal(name="Dark2", n = 8))
   ylab("Relative abundance")  +
   scale_y_continuous(breaks = c(0.0,0.1,0.2,0.3,0.4)))
 
-#Stitch together plots for Figure 2
+#Stitch together plots for Figure 3
 top_row <- plot_grid(plot_phyla_abund + theme(legend.position = "none"),get_legend(plot_phyla_abund),
             plot_phyla_abund_HR + theme(legend.position = "none"),get_legend(plot_phyla_abund_HR),
             nrow=1,
@@ -528,16 +528,16 @@ bottom_row <-plot_grid(plot_genus_enriched_abund + theme(legend.position = "none
                 rel_widths = c(1,.75,1,.75),
                 labels = c('C','','D'))
 composition_taxa_HR <- plot_grid(top_row,bottom_row,nrow=2)
-ggsave(composition_taxa_HR,file=file.path(figure_outdir,'Fig2_composition_taxa_HR.pdf'),height=11,width=12)
+ggsave(composition_taxa_HR,file=file.path(figure_outdir,'Fig3_composition_taxa_HR.pdf'),height=11,width=12)
 
-#Stitch together plots for Figure S3
+#Stitch together plots for Figure S9
 plot_genus_deplete_abund_combined <- plot_grid(plot_genus_deplete_abund + theme(legend.position = "none"),get_legend(plot_genus_deplete_abund),
                                                plot_genus_deplete_abund_HRtype + theme(legend.position = "none"),get_legend(plot_genus_deplete_abund_HRtype),
                                                rel_widths = c(1,.5,1,.5))
-ggsave(plot_genus_deplete_abund_combined,file=file.path(figure_outdir,'FigS3_genera_depleted_captive.pdf'),height=13,width=8)
+ggsave(plot_genus_deplete_abund_combined,file=file.path(figure_outdir,'FigS9_genera_depleted_captive.pdf'),height=13,width=8)
 
 
-#Figure S4: COMPOSITION BARPLOT BY SITE
+#Figure S10: COMPOSITION BARPLOT BY SITE
 physeq16s_DescriptionSite_Mean <-  merge_samples(physeq16s, "Description_country_zoo") #collaspe samples into groups based on species and captivity status
 otu_table(physeq16s_DescriptionSite_Mean) <- otu_table(physeq16s_DescriptionSite_Mean)/sample_sums(physeq16s_DescriptionSite_Mean) #format count to relative abundance
 physeq16s_DescriptionSite_Mean <- psmelt(physeq16s_DescriptionSite_Mean)
@@ -546,7 +546,7 @@ sample_ordered <- c("wild_bonobo","wild_chimp","wild_gorilla","captive_bonobo","
                     "non_industrialized_human","industrialized_human")
 physeq16s_Description_Mean$Sample <- factor(physeq16s_Description_Mean$Sample, levels =sample_ordered)
 
-#FigureS4A
+#FigureS10A
 plot_phyla_abund_site <- physeq16s_DescriptionSite_Mean %>%
   filter(Phylum %in% Phylum_over01) %>%
   group_by(Sample,Phylum) %>% #group all ASVs within a Phylum
@@ -560,7 +560,7 @@ plot_phyla_abund_site <- physeq16s_DescriptionSite_Mean %>%
   ylab("Relative abundance") +
   scale_y_continuous(breaks = c(0.0,0.2,0.4,0.6,0.8,1.0))
 
-#FigureS4B
+#FigureS10B
 plot_gen_enriched_site <- physeq16s_DescriptionSite_Mean %>%
   filter(Genus %in% Genera_enriched) %>%
   group_by(Sample,Genus) %>% #group all ASVs within a Genus
@@ -574,7 +574,7 @@ plot_gen_enriched_site <- physeq16s_DescriptionSite_Mean %>%
   ylab("Relative abundance") +
   scale_y_continuous(breaks = c(0.0,0.1,0.2,0.3,0.4))
 
-#FigureS4C
+#FigureS10C
 plot_gen_depleted_site <- physeq16s_DescriptionSite_Mean %>%
   filter(Genus %in% Genera_depleted) %>%
   group_by(Sample,Genus) %>% #group all ASVs within a Genus
@@ -603,7 +603,7 @@ composition_barplot_site <- plot_grid(plotleg_phyla_abund_site,plotleg_gen_enric
                                       ncol=1,
                                       rel_heights = c(1,1,2.25),
                                       labels=c('A','B','C'))
-ggsave(composition_barplot_site,file=file.path(figure_outdir,'FigS4_composition_barplot_site.pdf'),height=10,width=10)
+ggsave(composition_barplot_site,file=file.path(figure_outdir,'FigS10_composition_barplot_site.pdf'),height=10,width=10)
 
 #ALPHA DIVERSITY
 calc_alpha_div <- function(physeq){
@@ -707,7 +707,7 @@ plot_alphadiv_Proteobacteria <- plot_alpha_figure(alphadiv_Proteobacteria,'Descr
                              plot_alphadiv_Firmicutes,
                              plot_alphadiv_Proteobacteria,
                              ncol=1, rel_heights = c(1,1,1,1,2)))
-ggsave(alpha_all_phlya,file=file.path(figure_outdir,'FigS1_alpha_all_phlya.pdf'),height=15,width=6)
+ggsave(alpha_all_phlya,file=file.path(figure_outdir,'FigS7_alpha_all_phlya.pdf'),height=15,width=6)
 
 #merge kruskal-wallis test results and apply pvalue correction
 kruskal_alphadiv <- data.frame(rbind(kruskal_alphadiv_allPhyla,
@@ -722,7 +722,7 @@ kruskal_alphadiv <- kruskal_alphadiv %>%
                              group2_mean=round(as.numeric(group2_mean),4))
 kruskal_alphadiv$p_adj_bonferroni <- round(p.adjust(kruskal_alphadiv$p,method = "bonferroni"),4)
 kruskal_alphadiv$p <- round(kruskal_alphadiv$p,4)
-write.table(as.data.frame(kruskal_alphadiv),file=file.path(table_outdir,'Table_kruskal_wallis_alphadiv_FigureS1.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+write.table(as.data.frame(kruskal_alphadiv),file=file.path(table_outdir,'Table_kruskal_wallis_alphadiv_FigureS7.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
 #OCCUPANCY/RELATIVE ABUNDANCE
 asv <- otu_table(physeq16s)
@@ -742,17 +742,17 @@ occ_abund_HRcat_filt <- occ_abun %>%
     theme_cowplot() +
     ylab('samples observed')  +
     xlab('log mean relative abundance'))
-ggsave(plot_occ_abund_HRcat, file = file.path(figure_outdir,'FigS5_occ_abund_HRcat.pdf'))
+ggsave(plot_occ_abund_HRcat, file = file.path(figure_outdir,'FigS3_occ_abund_HRcat.pdf'))
 
 print('log mean rel abund vs. samples observed model fit')
-(FigureS5_models <- occ_abund_HRcat_filt %>%
+(FigureS3_models <- occ_abund_HRcat_filt %>%
   select(HR_cat,asv_occ,asv_rel) %>% nest(-HR_cat) %>%
   mutate(fit = purrr::map(data, ~mgcv::gam(asv_occ ~ s(log(asv_rel), bs = "cs"), data = .)),
          results = purrr::map(fit, glance),
          R.square = purrr::map_dbl(fit, ~ summary(.)$r.sq)) %>%
   unnest(results) %>%
   select(-data, -fit))
-write.table(as.data.frame(FigureS5_models),file=file.path(table_outdir,'Table_model_summary_FigureS5.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+write.table(as.data.frame(FigureS3_models),file=file.path(table_outdir,'Table_model_summary_FigureS3.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
 #TAXONOMY OF HOST-RESTRICTED ASV
 print('distribution of ASVs by HR category and taxonomy')
@@ -768,7 +768,7 @@ physeq16s_HR_tax <- data.frame(tax_table(physeq16s)) %>%
   theme(legend.position = "none") +
   ylab("Proportion of ASVs"))
 ggsave(plot_physeq16s_HR_tax,
-       file = file.path(figure_outdir,'FigS6_HRtype_ASV_Taxonomy.pdf'),
+       file = file.path(figure_outdir,'FigS4_HRtype_ASV_Taxonomy.pdf'),
        width=4)
 #chi-squared
 physeq16s_HR_tax_chi <- physeq16s_HR_tax %>%
@@ -778,12 +778,12 @@ physeq16s_HR_tax_chi <- physeq16s_HR_tax %>%
 (chisq <- chisq.test(physeq16s_HR_tax_chi))
 chisq.res <- c(chisq$statistic,chisq$parameter,chisq$p.value)
 names(chisq.res) <- c('statistic','df','p.value')
-write.table(chisq.res,file=file.path(table_outdir,'Chisq_FigureS6.txt'),sep='\t',col.names=F,quote=F,row.names = TRUE)
+write.table(chisq.res,file=file.path(table_outdir,'Chisq_FigureS4.txt'),sep='\t',col.names=F,quote=F,row.names = TRUE)
 
 print('relative contributions of phyla to statistic')
 contrib <- 100*chisq$residuals^2/chisq$statistic
 contrib <-round(contrib, 3)
-write.table(contrib,file=file.path(table_outdir,'Chisq_contributions_FigureS6.txt'),sep='\t',quote=F,row.names = TRUE,col.names=NA)
+write.table(contrib,file=file.path(table_outdir,'Chisq_contributions_FigureS4.txt'),sep='\t',quote=F,row.names = TRUE,col.names=NA)
 
 #distribution of captive-ape ASVs across enclosures/host species/sites
 CP_ASVs<- HR_table %>% filter(CP_pres=='True') #subset to only ASVs present in captive apes
@@ -795,7 +795,7 @@ CP_ASVs<- HR_table %>% filter(CP_pres=='True') #subset to only ASVs present in c
     scale_fill_manual(values=c('#1b9e77','#d95f02','#7570b3','#e7298a'))+
     scale_x_continuous(breaks= c(1,2,3,4,5,6,7,8,9,10))+
     facet_wrap(~HR_cat))
-ggsave(plot_CP_ASVs,file=file.path(figure_outdir,'FigS7_captive_ASVs_distribution_enclosures.pdf'),height=4)
+ggsave(plot_CP_ASVs,file=file.path(figure_outdir,'FigS5_captive_ASVs_distribution_enclosures.pdf'),height=4)
 
 #PERCENT SHARED ASVS
 dist <- phyloseq::distance(physeq16s, method = "jaccard", binary=TRUE)
@@ -817,14 +817,14 @@ df <- df %>%
   mutate(similarity = 1-dist) %>%
   filter(captivity_status.ind1 == 'captive' & captivity_status.ind2 == 'captive')
 
-(Fig3_dist_site_sp_comp <- ggplot(df, aes(x=species_site_comp, y=similarity,fill=species_site_comp)) +
+(Fig4_dist_site_sp_comp <- ggplot(df, aes(x=species_site_comp, y=similarity,fill=species_site_comp)) +
     geom_violin()+
     theme_bw()+
     scale_fill_manual(values=c('#7fc97f','#beaed4','#fdc086','#ffff99'))+
     ylab('Proportion of shared ASVs'))
-ggsave(Fig3_dist_site_sp_comp,file=file.path(figure_outdir,'Fig3_dist_site_sp_comp.pdf'))
+ggsave(Fig4_dist_site_sp_comp,file=file.path(figure_outdir,'Fig4_dist_site_sp_comp.pdf'))
 
-print('running stats for figure 3, comparing sorenson similarity indexes among pairwise comparisons')
+print('running stats for figure 4, comparing sorenson similarity indexes among pairwise comparisons')
 perm_ttest<-function(group1,group2,df){
   group1_values <- df$dist[df$species_site_comp==group1]
   group2_values <- df$dist[df$species_site_comp==group2]
@@ -836,7 +836,7 @@ perm_ttest<-function(group1,group2,df){
   return(res)
 }
 
-Fig3_stats_table <- data.frame(rbind(
+Fig4_stats_table <- data.frame(rbind(
   perm_ttest("diff_species_diff_site","diff_species_same_site",df),
   perm_ttest("diff_species_diff_site","same_species_diff_site",df),
   perm_ttest("diff_species_diff_site","same_species_same_site",df),
@@ -844,16 +844,16 @@ Fig3_stats_table <- data.frame(rbind(
   perm_ttest("diff_species_same_site","same_species_same_site",df),
   perm_ttest("same_species_diff_site","same_species_same_site",df)))
 
-Fig3_stats_table <- Fig3_stats_table %>%
+Fig4_stats_table <- Fig4_stats_table %>%
                           mutate(p.value = as.numeric(p.value),
                                  statistic=round(as.numeric(statistic),1),
                                  group1_mean=round(as.numeric(group1_mean),4),
                                  group2_mean=round(as.numeric(group2_mean),4))
-Fig3_stats_table$p_adj_bonferroni <- round(p.adjust(Fig3_stats_table$p.value,method = "bonferroni"),4)
-Fig3_stats_table$p.value <- round(Fig3_stats_table$p.value,4)
-write.table(as.data.frame(Fig3_stats_table),file=file.path(table_outdir,'Table_permttest_Figure3.txt'),sep='\t',row.names = F,col.names=T,quote=F)
+Fig4_stats_table$p_adj_bonferroni <- round(p.adjust(Fig3_stats_table$p.value,method = "bonferroni"),4)
+Fig4_stats_table$p.value <- round(Fig3_stats_table$p.value,4)
+write.table(as.data.frame(Fig4_stats_table),file=file.path(table_outdir,'Table_permttest_Figure4.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
-#Figure S8
+#Figure S6
 df_same_site <- df %>% filter(species_site_comp=='diff_species_same_site')
 df_same_site <- df_same_site %>%
   mutate(within_sites_comp=paste0(site.ind1,'_',Description.ind1,'_vs_',Description.ind2)) %>%
@@ -867,7 +867,7 @@ plot_shared_ASVs_wn_site <- ggplot(df_same_site, aes(x=within_sites_comp, y=simi
   ylab('Proportion of shared ASVs')+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ggsave(plot_shared_ASVs_wn_site,
-       file = file.path(figure_outdir,'FigS8_shared_ASVs_wn_sites.pdf'))
+       file = file.path(figure_outdir,'FigS6_shared_ASVs_wn_sites.pdf'))
 
 #exclude chimpvsgorilla houston from the analysis
 #to see how much these samples contribute to the analysis
@@ -876,4 +876,4 @@ diff_species_same_site_excludeHOUS <- df_same_site$dist[df_same_site$within_site
 perm.t.test(diff_species_diff_site,diff_species_same_site_excludeHOUS)
 #still significant, but t-statistic drops from 16.3 to 6.9
 #when excluding Houston zoo comparisons
-system('rm Rplots.pdf') #remove plots generated by capture-output cmd 
+#system('rm Rplots.pdf') #remove plots generated by capture-output cmd 
