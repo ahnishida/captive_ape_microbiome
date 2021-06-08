@@ -393,4 +393,54 @@ ASV_table %>%
   
 ggsave(Bt3_tree_fig,filename = file.path('results/gyrb/analyses/figures/FigureS10_Bt3_tree.pdf'),width=7)
   
+##Co-diversification test on Bt2 lineage
+##Host distance matrix
+source('scripts/analyses/co_diversification_functions.R')
+human = c(0,6.4,6.4,8.60)
+chimp = c(6.4,0,2.396,8.60)
+bonobo = c(6.4,2.396,0,8.60)
+gorilla = c(8.60,8.60,8.60,0)
+host.D = rbind(human,chimp,bonobo,gorilla)
+colnames(host.D) = c('human','chimp','bonobo','gorilla')
 
+#bacterial distance matrix
+Bt2.D = cophenetic(Bt2_tree)
+dim(Bt2.D)
+#host to ASVs
+Host_Bt2 = HR_gyrb %>% select(ASV,HR_sampleTypes) %>% 
+  mutate(human = ifelse(str_detect(HR_sampleTypes,'human'),1,0), 
+         chimp = ifelse(str_detect(HR_sampleTypes,'chimp'),1,0),
+         bonbo = ifelse(str_detect(HR_sampleTypes,'bonobo'),1,0),
+         gorilla = ifelse(str_detect(HR_sampleTypes,'gorilla'),1,0)) %>%
+  select(-HR_sampleTypes) %>% 
+  filter(ASV %in% colnames(Bt2.D)) %>% 
+  column_to_rownames(var="ASV") %>%
+  t()
+
+N.perm = 999
+############ HOMMOLA ET AL. ###############
+(P.hommola <- suppressWarnings(sim_cosp(host.D, Bt2.D, t(Host_Bt2),N.perm)))
+#random tree
+RandomHostTree <- rtree(n= 4, rooted=TRUE, tip.label=NULL, br = runif)	
+Random.host.D <- cophenetic(RandomHostTree)
+(Random.P.hommola <- suppressWarnings(sim_cosp(Random.host.D, Bt2.D, t(Host_Bt2),N.perm)))
+
+############ PARAFIT ######################
+(P.parafit <- parafit(host.D, Bt2.D, Host_Bt2, nperm = N.perm, test.links = FALSE,
+                     seed = NULL, correction = "cailliez", silent = TRUE)$p.global)
+#random tree
+(Random.P.parafit <- parafit(Random.host.D, Bt2.D, Host_Bt2, nperm = N.perm, test.links = FALSE,
+                     seed = NULL, correction = "cailliez", silent = TRUE)$p.global)
+
+############# PACo ############ 
+(P.PACo <- PACo_N.perm(host.D, Bt2.D, Host_Bt2, N.perm))
+#random tree
+(Random.P.PACo  = PACo_N.perm(Random.host.D, Bt2.D, Host_Bt2, N.perm))
+
+#write table
+co_diversification_res = c(P.hommola,Random.P.hommola,P.parafit,Random.P.parafit,P.PACo,Random.P.PACo)
+names(co_diversification_res) = c('P.hommola','P.hommola_RandomHostTree','P.parafit','P.parafit_RandomHostTree','P.PACo','P.PACo_RandomHostTree')
+co_diversification_res = as.data.frame(co_diversification_res) %>% rownames_to_column(var = 'co_diversification_test')
+write_tsv(co_diversification_res,'results/gyrb/analyses/tables/co_diversification_res.txt')
+
+                      

@@ -62,6 +62,7 @@ ordinate_NMDS <- function(physeq,physeq_dist){
                           noshare = FALSE,
                           parallel = 4)
   ndim_stress = paste0('k = ',ord_nMDS$ndim,', stress = ',round(ord_nMDS$stress,2)) #extract stress and dimensions
+  
   plot_ord <- plot_ordination(
     physeq = physeq,
     ordination =ord_nMDS,
@@ -156,6 +157,26 @@ pw_df <- pw_df %>% mutate(betadisper_F = round(as.numeric(betadisper_F),1),
                           permanova_R2= round(as.numeric(permanova_R2),2))
 write.table(pw_df,file=file.path(table_outdir,'TableS4_pairwise_betadisper_permanova_Figure1.txt'),sep='\t',row.names = F,col.names=T,quote=F)
 
+#PERMANOVA captive apes host filtering
+
+#filter to just captive ape samples 
+physeq16s_captive = subset_samples(physeq16s,captivity_status=='captive')
+captive_metadata = as.data.frame(as.matrix(sample_data(physeq16s_captive)))
+captive_metadata = captive_metadata %>% mutate(enclosure = paste(Description,site_code,sep='_'))
+physeq16s_captive_bray <- phyloseq::distance(physeq16s_captive,'bray')
+
+#betadisper
+beta <- betadisper(physeq16s_captive_bray, captive_metadata$site_code) #run betadisper
+(beta_tab <- permutest(beta)$tab) #
+beta <- betadisper(physeq16s_captive_bray, captive_metadata$enclosure) 
+(beta_tab <- permutest(beta)$tab) 
+beta <- betadisper(physeq16s_captive_bray, captive_metadata$Description) 
+(beta_tab <- permutest(beta)$tab) 
+beta <- betadisper(physeq16s_captive_bray, captive_metadata$dataset) 
+(beta_tab <- permutest(beta)$tab) 
+perm <- adonis(physeq16s_captive_bray ~ site_code + enclosure + Description + dataset, data = captive_metadata)
+perm
+
 #COMPOSITION BY PHYLA
 print('merging samples by description to visualize average relative abundances of phyla')
 physeq16s_Description_Mean <-  merge_samples(physeq16s, "Description") #collaspe samples into groups based on species and captivity status
@@ -188,6 +209,27 @@ print('summary of the mean relative abundance of HR ASVs across sample groups')
   summarise(mean_abundance=sum(Abundance)) %>%
   as.data.frame() %>% 
   spread(key = HR_type, value=mean_abundance))
+
+#Frequency of conspecific ASVs 
+physeq16S_melt = psmelt(physeq16s)
+head(physeq16S_melt)
+conspec = physeq16S_melt %>% 
+  select(OTU,Description,Abundance) %>% 
+  filter(Abundance>0) %>%
+  group_by(OTU,Description) %>% 
+  tally() %>% 
+  as.data.frame() %>%
+  pivot_wider(names_from = Description, values_from = n,values_fill=0) %>%
+  mutate_at(vars(-OTU),as.numeric) %>%
+  mutate(total = rowSums(select(conspec,-OTU)))
+chimp_conspec = conspec %>%
+  filter(captive_chimp+wild_chimp == total, captive_chimp>0, wild_chimp>0)
+gorilla_conspec = conspec %>%
+  filter(captive_gorilla+wild_gorilla== total, captive_gorilla>0, wild_gorilla>0)
+bonobo_conspec = conspec %>%
+  filter(captive_bonobo+wild_bonobo == total, captive_bonobo>0, wild_bonobo>0)
+
+physeq16S_melt %>% filter(OTU %in% c(gorilla_conspec$OTU,chimp_conspec$OTU)) %>% filter(captivity_status=='captive',Abundance>0) 
 
 #Figure 2A
 (plot_phyla_abund <- physeq16s_Description_Mean %>%

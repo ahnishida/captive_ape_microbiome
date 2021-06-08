@@ -1,0 +1,7 @@
+co_diversification_test	co_diversification_res
+P.hommola	0
+P.hommola_RandomHostTree	0
+P.parafit	0.001
+P.parafit_RandomHostTree	0.001
+P.PACo	0
+P.PACo_RandomHostTree	0
